@@ -119,7 +119,7 @@ codex-hooks status --log hooks.jsonl --tail 1000</code></pre>
       <thead><tr><th>default</th><th>reason</th></tr></thead>
       <tbody>
         <tr><td><code>fail_closed=true</code></td><td>Schema or runtime failures should not silently allow dangerous operations.</td></tr>
-        <tr><td>event-owned <code>permission_mode</code> gates</td><td>Restricted permission modes receive the official deny/block/stop shape admitted by the active event; local rules enforce safety after <code>permission_mode=bypassPermissions</code> is active.</td></tr>
+        <tr><td>event-owned <code>permission_mode</code> gates</td><td>Restricted permission modes receive the official deny/block/stop shape admitted by the active event; local rules apply hook guardrails after <code>permission_mode=bypassPermissions</code> is active.</td></tr>
         <tr><td><code>install</code> dry-run first</td><td>The deploy record shows exactly where hooks would be written before mutation.</td></tr>
         <tr><td>official output only</td><td>Codex hook stdout must stay compatible with upstream API schemas.</td></tr>
         <tr><td>rule sync gate</td><td><code>policy/user.json</code> and <code>policy/rules</code> must agree before deployment.</td></tr>

@@ -4,7 +4,7 @@ Codex-operated hook policy runtime for local safety guardrails and plugin-like c
 
 `codex-hooks` is meant to solve Codex permission-management hell without sending users back into sandbox tuning, manual allowlists, or one-off shell wrappers. It also replaces temporary development scripts with a schema-owned foundation for hook behavior, test boundaries, and feature growth. Humans state safety, workflow, or plugin-like feature requirements in natural language; Codex follows the handbook to develop those requirements into the hooks system: update `policy/user.json`, maintain matching rule files, change feature modules, verify behavior, and install Codex hooks.
 
-The runtime itself is deterministic. It executes rule data against official Codex hook schemas, validates official input, applies `trigger + feature + output` rule data, validates official output, and writes only official hook output. Each event owner handles `permission_mode` using its own official output shape; restricted modes receive full-access guidance, and local rules take over after `permission_mode=bypassPermissions`.
+The runtime itself is deterministic. It executes rule data against official Codex hook schemas, validates official input, applies `trigger + feature + output` rule data, validates official output, and writes only official hook output. Each event owner handles `permission_mode` using its own official output shape; restricted modes receive full-access guidance, and local rules act as hook guardrails after `permission_mode=bypassPermissions`.
 
 Architecture truth lives in `docs/handbook/index.html`. This README is the public entrypoint.
 
@@ -40,7 +40,7 @@ The CLI is the tool surface Codex uses to verify and deploy. Humans can run it d
 ## Developer Install
 
 ```bash
-git clone https://github.com/codex-hooks/codex-hooks.git
+git clone https://github.com/woolkingx/codex-hooks.git
 cd codex-hooks
 npm test
 ```
@@ -138,6 +138,7 @@ For rule or feature requests, Codex should:
 
 ## Safety Model
 
+- Codex hooks are guardrails, not a complete security or enforcement boundary. OpenAI's Codex hooks documentation notes that `PreToolUse` can often be bypassed by equivalent work through another supported tool path, and that some shell and non-shell tool paths are not intercepted yet: https://developers.openai.com/codex/hooks
 - Runtime accepts only event-owned rule schemas.
 - Runtime validates official input and official output.
 - Unsupported rule data fails closed when the event output schema admits a blocking output.

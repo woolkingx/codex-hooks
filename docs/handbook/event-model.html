@@ -103,10 +103,11 @@
 
   <section id="permission-mode-topology">
     <h2>6. Permission Mode Topology</h2>
-    <p>Codex permission mode changes the event surface. In sandbox or restricted modes, the practical hook surface collapses to <code>PermissionRequest</code>. In full access mode, <code>permission_mode=bypassPermissions</code>, Codex exposes the full hook surface and codex-hooks becomes the local safety manager.</p>
+    <p>Codex permission mode changes the event surface. In sandbox or restricted modes, the practical hook surface collapses to <code>PermissionRequest</code>. In full access mode, <code>permission_mode=bypassPermissions</code>, Codex exposes the full hook surface and codex-hooks becomes the local hook guardrail layer.</p>
     <pre><code>restricted/sandbox mode -&gt; PermissionRequest only
 bypassPermissions/full access -&gt; PermissionRequest + PreToolUse + PostToolUse + lifecycle events</code></pre>
     <p>Permission mode handling is event-owned, not a uniform global helper. Each event uses the official output fields available to that event: PermissionRequest returns allow/deny, PreToolUse returns block/deny, prompt/tool/stop gates return block when their schemas admit it, and bootstrap events stop with context when their schemas admit only context/stop.</p>
+    <p>These hooks are guardrails, not a complete security boundary. The official Codex hooks documentation says <code>PreToolUse</code> can often be bypassed by equivalent work through another supported tool path, and that some shell and non-shell tool paths are not intercepted yet.</p>
   </section>
 
   <section id="permission-request">
