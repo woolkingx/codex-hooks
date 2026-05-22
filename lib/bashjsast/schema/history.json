@@ -1,0 +1,37 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "history.json",
+  "title": "Bash History",
+  "description": "History control flags from bashhist.h.",
+
+  "definitions": {
+
+    "HistoryControlFlags": {
+      "type": "object",
+      "description": "HC_* flags for HISTCONTROL variable.",
+      "properties": {
+        "HC_IGNSPACE":  { "const": 1, "description": "Ignore lines starting with space" },
+        "HC_IGNDUPS":   { "const": 2, "description": "Ignore duplicate lines" },
+        "HC_ERASEDUPS": { "const": 4, "description": "Erase previous duplicates" },
+        "HC_IGNBOTH":   { "const": 3, "description": "HC_IGNSPACE | HC_IGNDUPS" }
+      }
+    },
+
+    "HistoryState": {
+      "type": "object",
+      "description": "Runtime history state variables.",
+      "properties": {
+        "remember_on_history":    { "type": "boolean", "description": "Currently recording history" },
+        "enable_history_list":    { "type": "boolean", "description": "set -o history" },
+        "literal_history":        { "type": "boolean", "description": "shopt lithist" },
+        "force_append_history":   { "type": "boolean", "description": "shopt histappend" },
+        "history_expansion":      { "type": "boolean", "description": "set -H / set -o histexpand" },
+        "history_control":        { "type": "integer", "description": "HC_* bitmask" },
+        "command_oriented_history": { "type": "boolean", "description": "shopt cmdhist" },
+        "hist_verify":            { "type": "boolean", "description": "shopt histverify (requires readline)" },
+        "history_expansion_inhibited": { "type": "boolean" },
+        "double_quotes_inhibit_history_expansion": { "type": "boolean" }
+      }
+    }
+  }
+}

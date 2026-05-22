@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>codex-hooks API Schema</title>
+  <style>
+    body { font-family: system-ui, sans-serif; line-height: 1.5; margin: 2rem auto; max-width: 1120px; padding: 0 1rem; color: #1f2933; }
+    table { border-collapse: collapse; width: 100%; margin: 1rem 0; }
+    th, td { border: 1px solid #c7d0da; padding: 0.5rem; text-align: left; vertical-align: top; }
+    th { background: #eef2f6; } code, pre { background: #f3f5f7; border-radius: 4px; } code { padding: 0.1rem 0.25rem; } pre { padding: 0.75rem; overflow-x: auto; }
+  </style>
+  <link rel="stylesheet" href="handbook.css">
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar" aria-labelledby="handbook-index">
+      <h2 id="handbook-index">Index</h2>
+      <nav aria-label="Handbook chapters">
+        <ol>
+          <li><a href="index.html">Handbook Home</a></li>
+          <li><a href="artifact-roles.html">Artifact Roles</a></li>
+          <li><a href="topology.html">System Topology</a></li>
+          <li><a href="schema-tree.html">Data Ontology</a></li>
+          <li><a href="api-schema.html">API Schema</a></li>
+          <li><a href="event-model.html">Event Model</a></li>
+          <li><a href="policy.html">Policy</a></li>
+          <li><a href="usage.html">Usage</a></li>
+          <li><a href="model-onboarding.html">Model Onboarding</a></li>
+          <li><a href="config.html">Config</a></li>
+          <li><a href="runtime-kernels.html">Runtime Kernels</a></li>
+          <li><a href="interfaces.html">Interfaces</a></li>
+          <li><a href="deployment.html">Deployment</a></li>
+          <li><a href="decision-flow.html">Decision Flow</a></li>
+          <li><a href="stage-actions.html">Stage Actions</a></li>
+          <li><a href="handbook-skills.html">Handbook Skills</a></li>
+          <li><a href="acceptance-gates.html">Acceptance Gates</a></li>
+          <li><a href="roadmap.html">Roadmap</a></li>
+        </ol>
+      </nav>
+    </aside>
+
+    <main class="content">
+  <h1>API Schema</h1>
+
+  <section id="source">
+    <h2>Official Mirror</h2>
+    <pre><code>schema/api/openai-codex/source.json
+schema/api/openai-codex/generated/*.schema.json</code></pre>
+    <p>The mirror source is <a href="https://github.com/openai/codex/tree/main/codex-rs/hooks/schema/generated">OpenAI Codex generated hook schemas</a>. The pinned source commit is recorded in <code>schema/api/openai-codex/source.json</code>.</p>
+  </section>
+
+  <section id="event-command-pairs">
+    <h2>Event Command Pairs</h2>
+    <table>
+      <thead>
+        <tr><th>event</th><th>input schema</th><th>output schema</th><th>service implication</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>PreToolUse</code></td><td><code>pre-tool-use.command.input.schema.json</code></td><td><code>pre-tool-use.command.output.schema.json</code></td><td>Tool gate before execution; V1 emits deny/block, additional context, or no stdout for allow. Ask and input rewriting are not projected by this owner until supported by the active Codex release.</td></tr>
+        <tr><td><code>PermissionRequest</code></td><td><code>permission-request.command.input.schema.json</code></td><td><code>permission-request.command.output.schema.json</code></td><td>Permission gate; behavior is allow or deny.</td></tr>
+        <tr><td><code>PostToolUse</code></td><td><code>post-tool-use.command.input.schema.json</code></td><td><code>post-tool-use.command.output.schema.json</code></td><td>Tool result observer; may block or add/update tool output context.</td></tr>
+        <tr><td><code>PreCompact</code></td><td><code>pre-compact.command.input.schema.json</code></td><td><code>pre-compact.command.output.schema.json</code></td><td>Compaction preflight; common continue/stop envelope only.</td></tr>
+        <tr><td><code>PostCompact</code></td><td><code>post-compact.command.input.schema.json</code></td><td><code>post-compact.command.output.schema.json</code></td><td>Compaction completion observer; common continue/stop envelope only.</td></tr>
+        <tr><td><code>SessionStart</code></td><td><code>session-start.command.input.schema.json</code></td><td><code>session-start.command.output.schema.json</code></td><td>Session bootstrap; may add event-specific context.</td></tr>
+        <tr><td><code>UserPromptSubmit</code></td><td><code>user-prompt-submit.command.input.schema.json</code></td><td><code>user-prompt-submit.command.output.schema.json</code></td><td>Prompt gate; may block or add context.</td></tr>
+        <tr><td><code>SubagentStart</code></td><td><code>subagent-start.command.input.schema.json</code></td><td><code>subagent-start.command.output.schema.json</code></td><td>Subagent bootstrap; may add event-specific context.</td></tr>
+        <tr><td><code>Stop</code></td><td><code>stop.command.input.schema.json</code></td><td><code>stop.command.output.schema.json</code></td><td>Stop gate; may block final stop behavior.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section id="official-event-semantics">
+    <h2>Official Event Semantics</h2>
+    <p>This table is the model-facing summary of the mirrored official schemas. When changing an event owner, read this table first, then inspect the local mirror if a field changed upstream.</p>
+    <table>
+      <thead>
+        <tr><th>event</th><th>when it fires</th><th>input identity</th><th>official output meaning</th><th>permission_mode policy</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>PermissionRequest</code></td><td>Codex asks whether a tool permission request should be allowed.</td><td><code>tool_name</code>, <code>tool_input</code>, <code>cwd</code>, <code>model</code>, <code>permission_mode</code>, session/turn ids.</td><td><code>hookSpecificOutput.decision.behavior = allow|deny</code>. Reserved input/permission rewrite fields are not used by V1.</td><td>Mode gate. Non-<code>bypassPermissions</code> returns official deny with full-access guidance. In <code>bypassPermissions</code>, it may reuse compatible PreToolUse rules and map allow/deny back to PermissionRequest output.</td></tr>
+        <tr><td><code>PreToolUse</code></td><td>Before a tool executes on the full hook surface.</td><td><code>tool_name</code>, <code>tool_input</code>, <code>tool_use_id</code>, <code>cwd</code>, <code>model</code>, <code>permission_mode</code>, session/turn ids.</td><td>May block/approve via <code>decision</code> and may set <code>hookSpecificOutput.permissionDecision = allow|deny|ask</code>. V1 uses deny/block and context only.</td><td>Enforcement gate. Non-<code>bypassPermissions</code> blocks with full-access guidance. In <code>bypassPermissions</code>, event rules are the main safety engine.</td></tr>
+        <tr><td><code>PostToolUse</code></td><td>After a tool returns on the full hook surface.</td><td>PreToolUse identity plus <code>tool_response</code>.</td><td>May block, add context, or update MCP tool output through official PostToolUse fields.</td><td>Post-execution gate. Non-<code>bypassPermissions</code> blocks with full-access guidance; in full access it can inspect results and apply event rules.</td></tr>
+        <tr><td><code>PreCompact</code></td><td>Before context compaction.</td><td><code>trigger = manual|auto</code>, <code>cwd</code>, <code>model</code>, session/turn ids. No <code>permission_mode</code>.</td><td>Common continue/stop envelope only.</td><td>No permission mode field; no permission gate.</td></tr>
+        <tr><td><code>PostCompact</code></td><td>After context compaction.</td><td><code>trigger = manual|auto</code>, <code>cwd</code>, <code>model</code>, session/turn ids. No <code>permission_mode</code>.</td><td>Common continue/stop envelope only.</td><td>No permission mode field; no permission gate.</td></tr>
+        <tr><td><code>SessionStart</code></td><td>At session startup, resume, or clear.</td><td><code>source = startup|resume|clear</code>, <code>cwd</code>, <code>model</code>, <code>permission_mode</code>, session id.</td><td>May add session context or stop through the common envelope.</td><td>Bootstrap gate. Non-<code>bypassPermissions</code> stops with full-access guidance; in full access it may add context or enforce session rules.</td></tr>
+        <tr><td><code>UserPromptSubmit</code></td><td>When the user submits a prompt.</td><td><code>prompt</code>, <code>cwd</code>, <code>model</code>, <code>permission_mode</code>, session/turn ids.</td><td>May block the prompt or add context through official fields.</td><td>Prompt gate. Non-<code>bypassPermissions</code> blocks with full-access guidance; in full access it may run prompt rules.</td></tr>
+        <tr><td><code>SubagentStart</code></td><td>When a subagent starts.</td><td><code>agent_id</code>, <code>agent_type</code>, <code>cwd</code>, <code>model</code>, <code>permission_mode</code>, session/turn ids.</td><td>May add subagent context or stop through the common envelope.</td><td>Subagent bootstrap gate. Non-<code>bypassPermissions</code> stops with full-access guidance; in full access it may add context or enforce subagent rules.</td></tr>
+        <tr><td><code>Stop</code></td><td>When Codex is about to stop.</td><td><code>last_assistant_message</code>, <code>stop_hook_active</code>, <code>cwd</code>, <code>model</code>, <code>permission_mode</code>, session/turn ids.</td><td>May block stop behavior with <code>decision = block</code> and <code>reason</code>, or use the common stop envelope.</td><td>Stop gate. Non-<code>bypassPermissions</code> blocks with full-access guidance; in full access it may run stop rules.</td></tr>
+      </tbody>
+    </table>
+    <p>Permission mode is not a uniform runtime helper. It is an input field whose meaning depends on the event's official output power. Each event owner must decide using only output fields admitted by its own official output schema.</p>
+  </section>
+
+  <section id="shape-rules">
+    <h2>Shape Rules</h2>
+    <pre><code>input.hook_event_name = event const
+input.additionalProperties = false
+output.additionalProperties = false
+output = common envelope + event-specific hookSpecificOutput
+event_owner = dispatch by hook_event_name
+validation_projection = strip upstream default annotations</code></pre>
+    <p>Each official schema pair defines one event owner boundary. Runtime orchestration must dispatch to the event owner before producing the official output shape.</p>
+    <p>Hook stdout is official output only. Runtime internals such as normalized events, policy decisions, status, or logs must not appear in hook stdout unless translated into fields allowed by that event's official output schema.</p>
+    <p>Every policy action must project into an official output branch for the active event. Unsupported branches fail closed at the event owner; they are not omitted and are never serialized as custom fields.</p>
+    <p>The mirror files stay raw. API validation uses a local projection that removes upstream <code>default</code> annotations before passing schemas to <code>schema2object</code>, because upstream defaults are annotations while <code>schema2object</code> treats defaults as runtime values.</p>
+  </section>
+
+  <section id="event-runtime-surface">
+    <h2>Event Runtime Surface</h2>
+    <pre><code>src/events/&lt;event&gt;/&lt;event&gt;.mjs
+src/events/&lt;event&gt;/&lt;event&gt;.rule.schema.json
+src/events/&lt;event&gt;/test.mjs
+src/events/&lt;event&gt;/CLAUDE.md</code></pre>
+    <p>The official input and output schemas are the event wire data contracts. The local event rule schema owns trigger + feature + output rule data. Feature value schemas live with feature modules and are admitted by event rule schemas. No <code>owner.json</code>, event meta schema, or central registry schema becomes a fourth event data object.</p>
+  </section>
+    </main>
+  </div>
+</body>
+</html>

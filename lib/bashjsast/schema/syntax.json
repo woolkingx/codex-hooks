@@ -1,0 +1,113 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "syntax.json",
+  "title": "Bash Character Syntax",
+  "description": "Character classification tables from syntax.h. Defines which characters are metacharacters, break characters, quote characters, etc. The lexer uses these to decide when to break tokens.",
+
+  "definitions": {
+
+    "CharClass": {
+      "type": "object",
+      "description": "Character classification flags from sh_syntaxtab[]. Each character has a bitmask of these.",
+      "properties": {
+        "CWORD":     { "const": 0,      "description": "Nothing special; ordinary character" },
+        "CSHMETA":   { "const": 1,      "description": "Shell meta character" },
+        "CSHBRK":    { "const": 2,      "description": "Shell break character (superset of meta)" },
+        "CBACKQ":    { "const": 4,      "description": "Back quote `" },
+        "CQUOTE":    { "const": 8,      "description": "Shell quote character" },
+        "CSPECL":    { "const": 16,     "description": "Special character that needs quoting" },
+        "CEXP":      { "const": 32,     "description": "Shell expansion character" },
+        "CBSDQUOTE": { "const": 64,     "description": "Escaped by backslash in double quotes" },
+        "CBSHDOC":   { "const": 128,    "description": "Escaped by backslash in here-document" },
+        "CGLOB":     { "const": 256,    "description": "Globbing character" },
+        "CXGLOB":    { "const": 512,    "description": "Extended globbing character" },
+        "CXQUOTE":   { "const": 1024,   "description": "Quote + backslash" },
+        "CSPECVAR":  { "const": 2048,   "description": "Single-character shell variable name" },
+        "CSUBSTOP":  { "const": 4096,   "description": "Operators for ${word[:]OPstuff}" },
+        "CBLANK":    { "const": 8192,   "description": "Whitespace (blank) character" }
+      }
+    },
+
+    "CharSets": {
+      "type": "object",
+      "description": "Named character sets used by the lexer. From syntax.h #defines.",
+      "properties": {
+
+        "shellMetaChars": {
+          "const": "()<>;&|",
+          "description": "Characters that are always shell metacharacters."
+        },
+
+        "shellBreakChars": {
+          "const": "()<>;&| \t\n",
+          "description": "Characters that break tokens. Superset of meta + whitespace."
+        },
+
+        "shellQuoteChars": {
+          "const": "\"'`",
+          "description": "Characters that introduce quoting."
+        },
+
+        "shellExpChars": {
+          "const": "$<>",
+          "description": "Characters that trigger expansion. < > only with PROCESS_SUBSTITUTION."
+        },
+
+        "shellGlobChars": {
+          "const": "*?[]^",
+          "description": "Glob pattern characters."
+        },
+
+        "extGlobChars": {
+          "const": "@*+?!",
+          "description": "Extended glob prefix characters. Only with EXTENDED_GLOB."
+        },
+
+        "slashifyInQuotes": {
+          "const": "\\`$\"\n",
+          "description": "Characters where backslash is special inside double quotes."
+        },
+
+        "slashifyInHereDoc": {
+          "const": "\\`$",
+          "description": "Characters where backslash is special inside here-documents."
+        },
+
+        "blankChars": {
+          "const": " \t",
+          "description": "Parser-level blank characters (space and tab only)."
+        }
+      }
+    },
+
+    "SpecialVarChars": {
+      "type": "object",
+      "description": "Single-character special shell variables.",
+      "properties": {
+        "positional": {
+          "const": ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"],
+          "description": "$0 through $9."
+        },
+        "special": {
+          "const": ["@", "*", "#", "?", "-", "$", "!", "_"],
+          "description": "$@ $* $# $? $- $$ $! $_"
+        }
+      }
+    },
+
+    "ControlChars": {
+      "type": "object",
+      "description": "Internal control characters used during expansion (not visible in source).",
+      "properties": {
+        "CTLESC": {
+          "const": 1,
+          "description": "\\001 — escape next character from further processing."
+        },
+        "CTLNUL": {
+          "const": 127,
+          "description": "\\177 — quoted null character."
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "traps.json",
+  "title": "Bash Trap System",
+  "description": "Trap definitions from trap.h and signal handling from sig.h.",
+
+  "definitions": {
+
+    "SpecialTraps": {
+      "type": "object",
+      "description": "Special bash trap names beyond system signals.",
+      "properties": {
+        "EXIT_TRAP":   { "const": 0,         "description": "Trap on shell exit (signal 0)" },
+        "DEBUG_TRAP":  { "const": "NSIG",    "description": "Trap before each simple command" },
+        "ERROR_TRAP":  { "const": "NSIG+1",  "description": "Trap on non-zero exit (ERR)" },
+        "RETURN_TRAP": { "const": "NSIG+2",  "description": "Trap on function/source return" }
+      }
+    },
+
+    "DecodeSignalFlags": {
+      "type": "object",
+      "properties": {
+        "DSIG_SIGPREFIX": { "const": 1, "description": "Don't allow SIG prefix" },
+        "DSIG_NOCASE":    { "const": 2, "description": "Case-insensitive comparison" }
+      }
+    }
+  }
+}

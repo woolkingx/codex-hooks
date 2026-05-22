@@ -1,0 +1,65 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "root.json",
+  "title": "Bash AST Schema Root",
+  "description": "Master index. Load this with Loader(rootSchema, schemaDir) to resolve all cross-file $ref.",
+
+  "definitions": {
+
+    "Script":        { "$ref": "ast.json#/definitions/Script" },
+    "Command":       { "$ref": "ast.json#/definitions/Command" },
+    "Comment":       { "$ref": "ast.json#/definitions/Comment" },
+
+    "SimpleCommand": { "$ref": "nodes.json#/definitions/SimpleCommand" },
+    "Pipeline":      { "$ref": "nodes.json#/definitions/Pipeline" },
+    "List":          { "$ref": "nodes.json#/definitions/List" },
+    "If":            { "$ref": "nodes.json#/definitions/If" },
+    "For":           { "$ref": "nodes.json#/definitions/For" },
+    "ArithFor":      { "$ref": "nodes.json#/definitions/ArithFor" },
+    "While":         { "$ref": "nodes.json#/definitions/While" },
+    "Until":         { "$ref": "nodes.json#/definitions/Until" },
+    "Case":          { "$ref": "nodes.json#/definitions/Case" },
+    "CaseItem":      { "$ref": "nodes.json#/definitions/CaseItem" },
+    "Select":        { "$ref": "nodes.json#/definitions/Select" },
+    "Function":      { "$ref": "nodes.json#/definitions/Function" },
+    "Group":         { "$ref": "nodes.json#/definitions/Group" },
+    "Subshell":      { "$ref": "nodes.json#/definitions/Subshell" },
+    "Arithmetic":    { "$ref": "nodes.json#/definitions/Arithmetic" },
+    "Condition":     { "$ref": "nodes.json#/definitions/Condition" },
+    "Coproc":        { "$ref": "nodes.json#/definitions/Coproc" },
+
+    "Word":          { "$ref": "word.json#/definitions/Word" },
+    "Assignment":    { "$ref": "word.json#/definitions/Assignment" },
+    "Position":      { "$ref": "word.json#/definitions/Position" },
+
+    "Redirect":      { "$ref": "redirect.json#/definitions/Redirect" },
+    "RedirectOp":    { "$ref": "redirect.json#/definitions/RedirectOp" },
+
+    "Token":         { "$ref": "tokens.json#/definitions/Token" },
+    "TokenType":     { "$ref": "tokens.json#/definitions/TokenType" }
+  },
+
+  "x-layers": {
+    "description": "Architectural layers for documentation. Not used by Loader.",
+    "L0_source":        ["syntax.json", "general.json"],
+    "L1_lexer":         ["tokens.json", "y_tab.json", "word.json", "quoting.json", "alias.json"],
+    "L2_parser":        ["grammar.json", "flags.json", "ast.json", "nodes.json", "redirect.json"],
+    "L3_expansion":     ["subst.json", "variables.json", "arrays.json", "pathexp.json", "test.json"],
+    "L4_execution":     ["execution.json", "shell.json", "redir.json", "jobs.json", "builtins.json", "traps.json", "longjmp.json"],
+    "L5_infrastructure": ["input.json", "findcmd.json", "hashtable.json", "completion.json", "options.json", "history.json", "error.json", "config.json", "platform.json"]
+  },
+
+  "x-parser-scope": {
+    "description": "Minimum schemas needed for a standalone parser.",
+    "required": ["syntax.json", "tokens.json", "y_tab.json", "word.json", "quoting.json", "alias.json", "grammar.json", "flags.json", "ast.json", "nodes.json", "redirect.json"],
+    "optional": ["subst.json", "general.json"]
+  },
+
+  "x-stats": {
+    "totalFiles": 34,
+    "totalLayers": 6,
+    "bashHeadersCovered": 45,
+    "bashVersion": "5.3.9",
+    "schemaDraft": "draft-07"
+  }
+}

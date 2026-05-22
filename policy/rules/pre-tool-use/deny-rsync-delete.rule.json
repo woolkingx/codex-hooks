@@ -1,0 +1,31 @@
+{
+  "id": "deny-rsync-delete",
+  "event": "pre-tool-use",
+  "priority": 50,
+  "trigger": {
+    "$.tool_name": "Bash"
+  },
+  "feature": {
+    "bash-command": {
+      "value": {
+        "path": "$.tool_input.command",
+        "flags": {
+          "name": "rsync",
+          "contains": [
+            "--delete"
+          ],
+          "mode": "any"
+        }
+      }
+    }
+  },
+  "output": {
+    "decision": "block",
+    "reason": "rsync --delete is disabled.",
+    "hookSpecificOutput": {
+      "hookEventName": "PreToolUse",
+      "permissionDecision": "deny",
+      "permissionDecisionReason": "rsync --delete is disabled."
+    }
+  }
+}

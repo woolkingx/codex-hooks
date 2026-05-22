@@ -1,0 +1,46 @@
+{
+  "id": "deny-git-reset-hard",
+  "event": "pre-tool-use",
+  "priority": 50,
+  "trigger": {
+    "$.tool_name": "Bash"
+  },
+  "feature": {
+    "bash-command": {
+      "value": {
+        "all": [
+          {
+            "path": "$.tool_input.command",
+            "name": "git"
+          },
+          {
+            "path": "$.tool_input.command",
+            "arg": {
+              "name": "git",
+              "contains": "reset"
+            }
+          },
+          {
+            "path": "$.tool_input.command",
+            "flags": {
+              "name": "git",
+              "contains": [
+                "--hard"
+              ],
+              "mode": "any"
+            }
+          }
+        ]
+      }
+    }
+  },
+  "output": {
+    "decision": "block",
+    "reason": "git reset --hard is disabled.",
+    "hookSpecificOutput": {
+      "hookEventName": "PreToolUse",
+      "permissionDecision": "deny",
+      "permissionDecisionReason": "git reset --hard is disabled."
+    }
+  }
+}

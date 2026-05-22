@@ -1,0 +1,48 @@
+{
+  "id": "deny-force-push",
+  "event": "pre-tool-use",
+  "priority": 50,
+  "trigger": {
+    "$.tool_name": "Bash"
+  },
+  "feature": {
+    "bash-command": {
+      "value": {
+        "all": [
+          {
+            "path": "$.tool_input.command",
+            "name": "git"
+          },
+          {
+            "path": "$.tool_input.command",
+            "arg": {
+              "name": "git",
+              "contains": "push"
+            }
+          },
+          {
+            "path": "$.tool_input.command",
+            "flags": {
+              "name": "git",
+              "contains": [
+                "--force",
+                "-f",
+                "--force-with-lease"
+              ],
+              "mode": "any"
+            }
+          }
+        ]
+      }
+    }
+  },
+  "output": {
+    "decision": "block",
+    "reason": "git push --force is disabled.",
+    "hookSpecificOutput": {
+      "hookEventName": "PreToolUse",
+      "permissionDecision": "deny",
+      "permissionDecisionReason": "git push --force is disabled."
+    }
+  }
+}

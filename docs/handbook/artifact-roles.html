@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>codex-hooks Artifact Roles</title>
+  <style>
+    body { font-family: system-ui, sans-serif; line-height: 1.55; margin: 2rem auto; max-width: 1120px; padding: 0 1rem; color: #1f2933; }
+    table { border-collapse: collapse; width: 100%; margin: 1rem 0; }
+    th, td { border: 1px solid #c7d0da; padding: 0.5rem; text-align: left; vertical-align: top; }
+    th { background: #eef2f6; } code, pre { background: #f3f5f7; border-radius: 4px; } code { padding: 0.1rem 0.25rem; } pre { padding: 0.75rem; overflow-x: auto; line-height: 1.4; }
+  </style>
+  <link rel="stylesheet" href="handbook.css">
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar" aria-labelledby="handbook-index">
+      <h2 id="handbook-index">Index</h2>
+      <nav aria-label="Handbook chapters">
+        <ol>
+          <li><a href="index.html">Handbook Home</a></li>
+          <li><a href="artifact-roles.html">Artifact Roles</a></li>
+          <li><a href="topology.html">System Topology</a></li>
+          <li><a href="schema-tree.html">Data Ontology</a></li>
+          <li><a href="api-schema.html">API Schema</a></li>
+          <li><a href="event-model.html">Event Model</a></li>
+          <li><a href="policy.html">Policy</a></li>
+          <li><a href="usage.html">Usage</a></li>
+          <li><a href="model-onboarding.html">Model Onboarding</a></li>
+          <li><a href="config.html">Config</a></li>
+          <li><a href="runtime-kernels.html">Runtime Kernels</a></li>
+          <li><a href="interfaces.html">Interfaces</a></li>
+          <li><a href="deployment.html">Deployment</a></li>
+          <li><a href="decision-flow.html">Decision Flow</a></li>
+          <li><a href="stage-actions.html">Stage Actions</a></li>
+          <li><a href="handbook-skills.html">Handbook Skills</a></li>
+          <li><a href="acceptance-gates.html">Acceptance Gates</a></li>
+          <li><a href="roadmap.html">Roadmap</a></li>
+        </ol>
+      </nav>
+    </aside>
+
+    <main class="content">
+  <h1>Artifact Roles</h1>
+
+  <section id="principle">
+    <h2>1. Principle</h2>
+    <p>Every durable claim has one owner. Drift starts when handbook, CLAUDE, schema, policy, skill, and runtime files all try to own the same truth.</p>
+  </section>
+
+  <section id="roles">
+    <h2>2. Role Map</h2>
+    <table>
+      <thead><tr><th>artifact</th><th>status</th><th>owns</th><th>must not own</th></tr></thead>
+      <tbody>
+        <tr><td><code>docs/handbook/*.html</code></td><td>canonical</td><td>Architecture, topology, data flow, artifact roles, gates, roadmap.</td><td>Temporary task steps or unverified runtime behavior.</td></tr>
+        <tr><td><code>CLAUDE.md</code></td><td>boot card</td><td>Execution rules, local navigation, latest decisions, forbidden behavior.</td><td>Full architecture, complete data flow, long doctrine.</td></tr>
+        <tr><td><code>docs/plan/*.md</code></td><td>task plan</td><td>Task order, file scope, commands, verification for one loop.</td><td>New architecture semantics.</td></tr>
+        <tr><td><code>schema/*.schema.json</code></td><td>machine contract</td><td>Data shape, constraints, defaults, validation boundary.</td><td>Hidden behavior, prose-only decisions, runtime side effects.</td></tr>
+        <tr><td><code>schema/api/openai-codex/generated/</code></td><td>upstream mirror</td><td>Official Codex SDU and next-PDU wire contracts.</td><td>Local extensions or output guesses.</td></tr>
+        <tr><td><code>policy/user.json</code></td><td>user requirement data</td><td><code>{ id, event, enabled, requirement }</code> requirement requests; <code>enabled</code> is user-owned authoring state.</td><td>Rule clauses, feature config, runtime config, compiler trace, or diagnostics.</td></tr>
+        <tr><td><code>policy/rules/&lt;event&gt;/*.rule.json</code></td><td>runtime rule data</td><td>Trigger + feature + output declarations.</td><td>User prose, compiler logs, diagnostics, or hidden service behavior.</td></tr>
+                <tr><td><code>src/events/&lt;event&gt;/</code></td><td>layer executor</td><td>SDU validation, PCI execution, next-PDU validation, projection.</td><td>Policy authoring, model calls, cross-event ownership.</td></tr>
+        <tr><td><code>src/core/transition.mjs</code></td><td>trigger executor</td><td>Executes trigger checks and admitted feature modules over official input data.</td><td>A schema root, event, or data owner.</td></tr>
+        <tr><td><code>skills/codex-hooks/</code></td><td>compiler skill</td><td>Model-side authoring procedure from requirement to rule data plus log records.</td><td>Hot-path runtime truth.</td></tr>
+        <tr><td><code>test.mjs</code></td><td>proof</td><td>Owner-local acceptance evidence.</td><td>Second runtime or replacement source of truth.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section id="migration-rule">
+    <h2>3. Migration Rule</h2>
+    <p>Move architecture claims into the handbook first. Then trim boot cards, skills, plans, and runtime docs to point at the owner. Do not delete source material until the owning handbook section and verification gate exist.</p>
+  </section>
+
+  <section id="anti-pattern">
+    <h2>4. Anti-pattern</h2>
+    <pre><code>CLAUDE.md owns architecture
+skill owns product doctrine
+schema owns hidden runtime behavior
+runtime code repairs missing schema truth</code></pre>
+    <p>This makes the actor own truth. codex-hooks keeps truth in handbook and schemas, then projects it into plans, skills, policy files, runtime code, and tests.</p>
+  </section>
+
+  <section id="gate">
+    <h2>5. Gate</h2>
+    <p id="GATE-ARTIFACT-01"><code>GATE-ARTIFACT-01</code>: every durable architecture claim must have exactly one canonical handbook owner and no competing owner in CLAUDE, skill, schema, policy, or runtime files.</p>
+  </section>
+    </main>
+  </div>
+</body>
+</html>

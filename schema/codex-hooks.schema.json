@@ -1,0 +1,154 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "codex-hooks.schema.json",
+  "title": "codex-hooks schema graph",
+  "description": "Reachability manifest for codex-hooks owned schemas.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "api": {
+      "type": "object",
+      "properties": {
+        "permission-request": {
+          "type": "object",
+          "properties": {
+            "input": { "$ref": "api/openai-codex/generated/permission-request.command.input.schema.json" },
+            "output": { "$ref": "api/openai-codex/generated/permission-request.command.output.schema.json" }
+          }
+        },
+        "post-compact": {
+          "type": "object",
+          "properties": {
+            "input": { "$ref": "api/openai-codex/generated/post-compact.command.input.schema.json" },
+            "output": { "$ref": "api/openai-codex/generated/post-compact.command.output.schema.json" }
+          }
+        },
+        "post-tool-use": {
+          "type": "object",
+          "properties": {
+            "input": { "$ref": "api/openai-codex/generated/post-tool-use.command.input.schema.json" },
+            "output": { "$ref": "api/openai-codex/generated/post-tool-use.command.output.schema.json" }
+          }
+        },
+        "pre-compact": {
+          "type": "object",
+          "properties": {
+            "input": { "$ref": "api/openai-codex/generated/pre-compact.command.input.schema.json" },
+            "output": { "$ref": "api/openai-codex/generated/pre-compact.command.output.schema.json" }
+          }
+        },
+        "pre-tool-use": {
+          "type": "object",
+          "properties": {
+            "input": { "$ref": "api/openai-codex/generated/pre-tool-use.command.input.schema.json" },
+            "output": { "$ref": "api/openai-codex/generated/pre-tool-use.command.output.schema.json" }
+          }
+        },
+        "session-start": {
+          "type": "object",
+          "properties": {
+            "input": { "$ref": "api/openai-codex/generated/session-start.command.input.schema.json" },
+            "output": { "$ref": "api/openai-codex/generated/session-start.command.output.schema.json" }
+          }
+        },
+        "stop": {
+          "type": "object",
+          "properties": {
+            "input": { "$ref": "api/openai-codex/generated/stop.command.input.schema.json" },
+            "output": { "$ref": "api/openai-codex/generated/stop.command.output.schema.json" }
+          }
+        },
+        "subagent-start": {
+          "type": "object",
+          "properties": {
+            "input": { "$ref": "api/openai-codex/generated/subagent-start.command.input.schema.json" },
+            "output": { "$ref": "api/openai-codex/generated/subagent-start.command.output.schema.json" }
+          }
+        },
+        "user-prompt-submit": {
+          "type": "object",
+          "properties": {
+            "input": { "$ref": "api/openai-codex/generated/user-prompt-submit.command.input.schema.json" },
+            "output": { "$ref": "api/openai-codex/generated/user-prompt-submit.command.output.schema.json" }
+          }
+        }
+      }
+    },
+    "events": {
+      "type": "object",
+      "properties": {
+        "permission-request": {
+          "type": "object",
+          "properties": {
+            "rule": { "$ref": "../src/events/permission-request/permission-request.rule.schema.json" }
+          }
+        },
+        "post-compact": {
+          "type": "object",
+          "properties": {
+            "rule": { "$ref": "../src/events/post-compact/post-compact.rule.schema.json" }
+          }
+        },
+        "post-tool-use": {
+          "type": "object",
+          "properties": {
+            "rule": { "$ref": "../src/events/post-tool-use/post-tool-use.rule.schema.json" }
+          }
+        },
+        "pre-compact": {
+          "type": "object",
+          "properties": {
+            "rule": { "$ref": "../src/events/pre-compact/pre-compact.rule.schema.json" }
+          }
+        },
+        "pre-tool-use": {
+          "type": "object",
+          "properties": {
+            "rule": { "$ref": "../src/events/pre-tool-use/pre-tool-use.rule.schema.json" }
+          }
+        },
+        "session-start": {
+          "type": "object",
+          "properties": {
+            "rule": { "$ref": "../src/events/session-start/session-start.rule.schema.json" }
+          }
+        },
+        "stop": {
+          "type": "object",
+          "properties": {
+            "rule": { "$ref": "../src/events/stop/stop.rule.schema.json" }
+          }
+        },
+        "subagent-start": {
+          "type": "object",
+          "properties": {
+            "rule": { "$ref": "../src/events/subagent-start/subagent-start.rule.schema.json" }
+          }
+        },
+        "user-prompt-submit": {
+          "type": "object",
+          "properties": {
+            "rule": { "$ref": "../src/events/user-prompt-submit/user-prompt-submit.rule.schema.json" }
+          }
+        }
+      }
+    },
+    "features": {
+      "type": "object",
+      "properties": {
+        "bash-command": { "$ref": "../src/features/bash-command/schema.json" }
+      }
+    },
+    "system": {
+      "type": "object",
+      "properties": {
+        "config": { "$ref": "config.schema.json" },
+        "deploy": { "$ref": "deploy.schema.json" },
+        "log": { "$ref": "log.schema.json" },
+        "profile": { "$ref": "profile.schema.json" },
+        "status": { "$ref": "status.schema.json" },
+        "user-policy": { "$ref": "user-policy.schema.json" }
+      }
+    }
+  }
+}

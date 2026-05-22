@@ -1,0 +1,49 @@
+{
+  "id": "deny-sed-awk",
+  "event": "pre-tool-use",
+  "priority": 50,
+  "trigger": {
+    "$.tool_name": "Bash"
+  },
+  "feature": {
+    "bash-command": {
+      "value": {
+        "any": [
+          {
+            "path": "$.tool_input.command",
+            "flags": {
+              "name": "sed",
+              "contains": [
+                "-i"
+              ],
+              "mode": "any"
+            }
+          },
+          {
+            "all": [
+              {
+                "path": "$.tool_input.command",
+                "name": {
+                  "regex": "^(sed|awk)$"
+                }
+              },
+              {
+                "path": "$.tool_input.command",
+                "writes_to_file": true
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "output": {
+    "decision": "block",
+    "reason": "sed -i and sed/awk with redirection are disabled. Use Edit tool instead.",
+    "hookSpecificOutput": {
+      "hookEventName": "PreToolUse",
+      "permissionDecision": "deny",
+      "permissionDecisionReason": "sed -i and sed/awk with redirection are disabled."
+    }
+  }
+}

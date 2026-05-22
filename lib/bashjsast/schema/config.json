@@ -1,0 +1,72 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "config.json",
+  "title": "Bash Compile-Time Configuration",
+  "description": "Configurable defaults from config-top.h. These affect parser and runtime behavior.",
+
+  "definitions": {
+
+    "DefaultPaths": {
+      "type": "object",
+      "description": "Default path values compiled into bash.",
+      "properties": {
+        "DEFAULT_PATH_VALUE": {
+          "type": "string",
+          "default": "/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin:."
+        },
+        "STANDARD_UTILS_PATH": {
+          "type": "string",
+          "default": "/bin:/usr/bin:/sbin:/usr/sbin",
+          "description": "PATH for command -p"
+        },
+        "DEFAULT_LOADABLE_BUILTINS_PATH": {
+          "type": "string",
+          "default": "/usr/local/lib/bash:/usr/lib/bash:/opt/local/lib/bash:/usr/pkg/lib/bash:/opt/pkg/lib/bash:."
+        }
+      }
+    },
+
+    "DefaultPrompts": {
+      "type": "object",
+      "properties": {
+        "PS1": { "type": "string", "const": "\\s-\\v\\$ ", "description": "PPROMPT" },
+        "PS2": { "type": "string", "const": "> ", "description": "SPROMPT" }
+      }
+    },
+
+    "FeatureDefaults": {
+      "type": "object",
+      "description": "Compile-time feature toggles that affect parser behavior.",
+      "properties": {
+        "MULTIPLE_COPROCS":      { "type": "boolean", "default": true },
+        "CHECKWINSIZE_DEFAULT":  { "type": "integer", "default": 1 },
+        "HISTEXPAND_DEFAULT":    { "type": "integer", "default": 1 },
+        "CHECKHASH_DEFAULT":     { "type": "integer", "default": 0 },
+        "EVALNEST_MAX":          { "type": "integer", "default": 0, "description": "0 = no limit" },
+        "SOURCENEST_MAX":        { "type": "integer", "default": 0, "description": "0 = no limit" },
+        "PATSUB_REPLACE_DEFAULT": { "type": "integer", "default": 1 },
+        "ASSOC_KVPAIR_ASSIGNMENT": { "type": "boolean", "default": true },
+        "FATAL_READERROR":       { "type": "boolean", "default": true },
+        "OPTIMIZE_SEQUENTIAL_ARRAY_ASSIGNMENT": { "type": "boolean", "default": true },
+        "OLDPWD_CHECK_DIRECTORY": { "type": "boolean", "default": true }
+      }
+    },
+
+    "StartupFiles": {
+      "type": "object",
+      "properties": {
+        "DEFAULT_BASHRC":   { "type": "string", "const": "~/.bashrc" },
+        "RESTRICTED_SHELL_NAME": { "type": "string", "const": "rbash" }
+      }
+    },
+
+    "CaseModFeatures": {
+      "type": "object",
+      "description": "Case modification features.",
+      "properties": {
+        "CASEMOD_TOGGLECASE": { "type": "boolean", "default": true, "description": "~~ operator" },
+        "CASEMOD_CAPCASE":    { "type": "boolean", "default": true, "description": "declare -c" }
+      }
+    }
+  }
+}

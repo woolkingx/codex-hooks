@@ -1,0 +1,15 @@
+{
+  "profile": "local",
+  "source": {
+    "policy_path": "policy/default.policy.json",
+    "api_schema_dir": "schema/api/openai-codex/generated"
+  },
+  "mode": {
+    "runtime": "enforce",
+    "fail_closed": true
+  },
+  "default": {
+    "policy.action": "allow"
+  },
+  "precedence": ["global", "project", "local"]
+}

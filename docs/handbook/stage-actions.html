@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>codex-hooks Stage Actions</title>
+  <style>
+    body { font-family: system-ui, sans-serif; line-height: 1.55; margin: 2rem auto; max-width: 1120px; padding: 0 1rem; color: #1f2933; }
+    table { border-collapse: collapse; width: 100%; margin: 1rem 0; }
+    th, td { border: 1px solid #c7d0da; padding: 0.5rem; text-align: left; vertical-align: top; }
+    th { background: #eef2f6; } code, pre { background: #f3f5f7; border-radius: 4px; } code { padding: 0.1rem 0.25rem; } pre { padding: 0.75rem; overflow-x: auto; line-height: 1.4; }
+  </style>
+  <link rel="stylesheet" href="handbook.css">
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar" aria-labelledby="handbook-index">
+      <h2 id="handbook-index">Index</h2>
+      <nav aria-label="Handbook chapters">
+        <ol>
+          <li><a href="index.html">Handbook Home</a></li>
+          <li><a href="artifact-roles.html">Artifact Roles</a></li>
+          <li><a href="topology.html">System Topology</a></li>
+          <li><a href="schema-tree.html">Data Ontology</a></li>
+          <li><a href="api-schema.html">API Schema</a></li>
+          <li><a href="event-model.html">Event Model</a></li>
+          <li><a href="policy.html">Policy</a></li>
+          <li><a href="usage.html">Usage</a></li>
+          <li><a href="model-onboarding.html">Model Onboarding</a></li>
+          <li><a href="config.html">Config</a></li>
+          <li><a href="runtime-kernels.html">Runtime Kernels</a></li>
+          <li><a href="interfaces.html">Interfaces</a></li>
+          <li><a href="deployment.html">Deployment</a></li>
+          <li><a href="decision-flow.html">Decision Flow</a></li>
+          <li><a href="stage-actions.html">Stage Actions</a></li>
+          <li><a href="handbook-skills.html">Handbook Skills</a></li>
+          <li><a href="acceptance-gates.html">Acceptance Gates</a></li>
+          <li><a href="roadmap.html">Roadmap</a></li>
+        </ol>
+      </nav>
+    </aside>
+
+    <main class="content">
+  <h1>Stage Actions</h1>
+
+  <section id="principle">
+    <h2>1. Principle</h2>
+    <p>A stage is an action boundary, not an agent identity. A human, model skill, CLI, or test may execute the stage, but the stage decides the artifact and the artifact decides the gate.</p>
+    <pre><code>policy/user.json requirement
+  -&gt; input schema (SDU)
+  -&gt; rule schema (trigger + feature + output data)
+  -&gt; output schema (next-PDU)
+  -&gt; event executor
+  -&gt; evidence</code></pre>
+  </section>
+
+  <section id="stage-table">
+    <h2>2. Stage Table</h2>
+    <table>
+      <thead><tr><th>stage</th><th>question</th><th>action</th><th>input</th><th>output</th><th>gate</th><th>failure route</th></tr></thead>
+      <tbody>
+        <tr><td>Perceive</td><td>What does the user want?</td><td>Name the requirement id, event, and plain requirement.</td><td>User request</td><td><code>policy/user.json</code> requirement</td><td>Only <code>id</code>, <code>event</code>, and <code>requirement</code> appear.</td><td>Return to user source if the event or requirement is unknown.</td></tr>
+        <tr><td>SDU</td><td>What official input arrives?</td><td>Read the channel input schema and sample payload.</td><td>Requirement event</td><td>Named SDU schema path</td><td>Input fields come from official Codex schema only.</td><td>Return to API schema mirror update.</td></tr>
+        <tr><td>PCI</td><td>What transition is declared?</td><td>Compile requirement into trigger + feature + output rule data.</td><td>Requirement, input schema, feature schemas, rule schema, output schema</td><td>One <code>*.rule.json</code> or compiler log record</td><td>Rule validates against shared and event rule schemas.</td><td>Return to rule schema design or compiler log.</td></tr>
+        <tr><td>next-PDU</td><td>What official output may leave?</td><td>Ensure the rule result is one legal output branch.</td><td>Rule transition result</td><td>Output data or <code>null</code></td><td>Output validates against official output schema.</td><td>Return to PCI if the result invented fields.</td></tr>
+        <tr><td>Executor</td><td>Who runs the transition?</td><td>Run the event handler as a layer executor over SDU, PCI, and next-PDU.</td><td>Hook payload and selected rules</td><td>Wire output or no output</td><td>Handler executes rule data and does not call a model.</td><td>Return to rule schema or core executor bug.</td></tr>
+        <tr><td>Verify</td><td>Did the transition hold?</td><td>Run schema validation, owner-local tests, hook smoke, link check, or parse check as scoped.</td><td>Changed artifact set</td><td>Evidence</td><td>Input validates, PCI applies, output validates.</td><td>Return to the failed owner.</td></tr>
+        <tr><td>Closure</td><td>What becomes durable?</td><td>Sync handbook and boot card, record decision, commit scoped changes.</td><td>Evidence</td><td>Durable project state</td><td>Commit contains only scoped artifacts.</td><td>Return to Verify if evidence is incomplete.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section id="action-rule">
+    <h2>3. Action Rule</h2>
+    <p>Do not choose a tool, model, or runtime path before naming the stage. The stage names the owner. The owner names the schema. The schema names the legal transition. The gate proves the transition.</p>
+  </section>
+
+  <section id="anti-pattern">
+    <h2>4. Anti-pattern</h2>
+    <pre><code>agent -&gt; tool -&gt; helper schema -&gt; fake data root</code></pre>
+    <p>This order makes the actor own truth. codex-hooks uses:</p>
+    <pre><code>input data --(rule data)--&gt; output data</code></pre>
+  </section>
+
+  <section id="gate">
+    <h2>5. Gate</h2>
+    <p id="GATE-STAGE-ACTIONS-01"><code>GATE-STAGE-ACTIONS-01</code>: every requirement-to-rule action must name stage, input artifact, output artifact, owner, gate, and failure route before execution.</p>
+  </section>
+    </main>
+  </div>
+</body>
+</html>

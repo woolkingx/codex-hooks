@@ -1,0 +1,99 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "word.json",
+  "title": "Bash Word Types",
+  "description": "Word, WordList, and Assignment — the atomic units of bash syntax.",
+
+  "definitions": {
+
+    "Word": {
+      "type": "object",
+      "description": "A single shell word. May contain unexpanded text.",
+      "required": ["type", "text"],
+      "properties": {
+        "type": {
+          "const": "Word"
+        },
+        "text": {
+          "type": "string",
+          "description": "Raw text of the word as written in source."
+        },
+        "quoted": {
+          "type": "boolean",
+          "default": false,
+          "description": "Whether any form of quoting is present."
+        },
+        "hasDollar": {
+          "type": "boolean",
+          "default": false,
+          "description": "Whether $ appears in the word."
+        },
+        "assignment": {
+          "type": "boolean",
+          "default": false,
+          "description": "Whether this word is a variable assignment (NAME=VALUE)."
+        },
+        "pos": {
+          "$ref": "#/definitions/Position"
+        }
+      },
+      "additionalProperties": false
+    },
+
+    "Assignment": {
+      "type": "object",
+      "description": "Variable assignment: NAME=VALUE or NAME+=VALUE.",
+      "required": ["type", "name"],
+      "properties": {
+        "type": {
+          "const": "Assignment"
+        },
+        "name": {
+          "type": "string",
+          "description": "Variable name (left of =)."
+        },
+        "rhs": {
+          "$ref": "#/definitions/Word",
+          "description": "Right-hand side (after =). Absent for bare NAME=."
+        },
+        "append": {
+          "type": "boolean",
+          "default": false,
+          "description": "True if += operator."
+        },
+        "array": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Word"
+          },
+          "description": "Compound array assignment: NAME=(word word ...)."
+        },
+        "pos": {
+          "$ref": "#/definitions/Position"
+        }
+      },
+      "additionalProperties": false
+    },
+
+    "Position": {
+      "type": "object",
+      "description": "Source location.",
+      "required": ["offset"],
+      "properties": {
+        "offset": {
+          "type": "integer",
+          "description": "Character offset from start of input."
+        },
+        "line": {
+          "type": "integer",
+          "description": "1-based line number."
+        },
+        "column": {
+          "type": "integer",
+          "description": "1-based column number."
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

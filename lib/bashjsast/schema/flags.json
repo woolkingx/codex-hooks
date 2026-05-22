@@ -1,0 +1,134 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "flags.json",
+  "title": "Bash Internal Flags",
+  "description": "Bitflag definitions from command.h and parser.h. Parser-relevant subset only.",
+
+  "definitions": {
+
+    "WordFlags": {
+      "type": "object",
+      "description": "WORD_DESC flags (W_*). Lexical properties discovered during tokenization.",
+      "properties": {
+        "hasDollar":      { "const": 1,          "description": "W_HASDOLLAR — $ present" },
+        "quoted":         { "const": 2,          "description": "W_QUOTED — any quote char present" },
+        "assignment":     { "const": 4,          "description": "W_ASSIGNMENT — variable assignment" },
+        "splitSpace":     { "const": 8,          "description": "W_SPLITSPACE — split on space regardless of IFS" },
+        "noSplit":        { "const": 16,         "description": "W_NOSPLIT — no word splitting (empty IFS)" },
+        "noGlob":         { "const": 32,         "description": "W_NOGLOB — no glob expansion" },
+        "tildeExp":       { "const": 128,        "description": "W_TILDEEXP — tilde expand this word" },
+        "arrayRef":       { "const": 512,        "description": "W_ARRAYREF — valid array reference" },
+        "noComSub":       { "const": 1024,       "description": "W_NOCOMSUB — no command substitution" },
+        "assignRhs":      { "const": 2048,       "description": "W_ASSIGNRHS — rhs of assignment" },
+        "noTilde":        { "const": 4096,       "description": "W_NOTILDE — no tilde expansion" },
+        "compAssign":     { "const": 32768,      "description": "W_COMPASSIGN — compound assignment" },
+        "assnBuiltin":    { "const": 65536,      "description": "W_ASSNBLTIN — builtin that takes assignments" },
+        "assignArg":      { "const": 131072,     "description": "W_ASSIGNARG — assignment arg to command" },
+        "hasQuotedNull":  { "const": 262144,     "description": "W_HASQUOTEDNULL — quoted null present" },
+        "noProcSub":      { "const": 1048576,    "description": "W_NOPROCSUB — no process substitution" },
+        "assignAssoc":    { "const": 4194304,    "description": "W_ASSIGNASSOC — assoc array assignment" },
+        "assignArray":    { "const": 8388608,    "description": "W_ASSIGNARRAY — indexed array assignment" },
+        "noBrace":        { "const": 67108864,   "description": "W_NOBRACE — no brace expansion" },
+        "forceLocal":     { "const": 536870912,  "description": "W_FORCELOCAL — force local assignment" }
+      }
+    },
+
+    "CommandFlags": {
+      "type": "object",
+      "description": "COMMAND flags (CMD_*). Execution environment control.",
+      "properties": {
+        "wantSubshell":    { "const": 1,     "description": "CMD_WANT_SUBSHELL — ( command )" },
+        "forceSubshell":   { "const": 2,     "description": "CMD_FORCE_SUBSHELL" },
+        "invertReturn":    { "const": 4,     "description": "CMD_INVERT_RETURN — ! prefix" },
+        "ignoreReturn":    { "const": 8,     "description": "CMD_IGNORE_RETURN — for set -e" },
+        "noFunctions":     { "const": 16,    "description": "CMD_NO_FUNCTIONS — skip function lookup" },
+        "inhibitExpansion":{ "const": 32,    "description": "CMD_INHIBIT_EXPANSION" },
+        "noFork":          { "const": 64,    "description": "CMD_NO_FORK — execve directly" },
+        "timePipeline":    { "const": 128,   "description": "CMD_TIME_PIPELINE — time prefix" },
+        "timePosix":       { "const": 256,   "description": "CMD_TIME_POSIX — time -p" },
+        "ampersand":       { "const": 512,   "description": "CMD_AMPERSAND — command &" },
+        "stdinRedir":      { "const": 1024,  "description": "CMD_STDIN_REDIR — async needs </dev/null" },
+        "commandBuiltin":  { "const": 2048,  "description": "CMD_COMMAND_BUILTIN" },
+        "coprocSubshell":  { "const": 4096,  "description": "CMD_COPROC_SUBSHELL" },
+        "lastPipe":        { "const": 8192,  "description": "CMD_LASTPIPE" },
+        "stdPath":         { "const": 16384, "description": "CMD_STDPATH — standard PATH lookup" }
+      }
+    },
+
+    "ParserState": {
+      "type": "object",
+      "description": "Parser state flags (PST_*). Context bits that change tokenizer behavior.",
+      "properties": {
+        "casePat":       { "const": 1,        "description": "PST_CASEPAT — in case pattern list" },
+        "alExpNext":     { "const": 2,        "description": "PST_ALEXPNEXT — expand next word for aliases" },
+        "allowOpnBrc":   { "const": 4,        "description": "PST_ALLOWOPNBRC — allow { for function def" },
+        "dblParen":      { "const": 16,       "description": "PST_DBLPAREN — (( )) parsing" },
+        "subshell":      { "const": 32,       "description": "PST_SUBSHELL — ( ) subshell" },
+        "cmdSubst":      { "const": 64,       "description": "PST_CMDSUBST — $( ) command substitution" },
+        "caseStmt":      { "const": 128,      "description": "PST_CASESTMT — inside case statement" },
+        "condCmd":       { "const": 256,      "description": "PST_CONDCMD — [[ ]] command" },
+        "condExpr":      { "const": 512,      "description": "PST_CONDEXPR — inside [[ ]] body" },
+        "arithFor":      { "const": 1024,     "description": "PST_ARITHFOR — arithmetic for" },
+        "extPat":        { "const": 4096,     "description": "PST_EXTPAT — extended glob pattern" },
+        "compAssign":    { "const": 8192,     "description": "PST_COMPASSIGN — x=(...) compound assignment" },
+        "assignOk":      { "const": 16384,    "description": "PST_ASSIGNOK — assignment ok in context" },
+        "eofToken":      { "const": 32768,    "description": "PST_EOFTOKEN — check shell_eof_token" },
+        "regexp":        { "const": 65536,    "description": "PST_REGEXP — parsing ERE/BRE as word" },
+        "heredoc":       { "const": 131072,   "description": "PST_HEREDOC — reading heredoc body" },
+        "reparse":       { "const": 262144,   "description": "PST_REPARSE — re-parsing in parse_string_to_word_list" },
+        "redirList":     { "const": 524288,   "description": "PST_REDIRLIST — redirections before simple command" },
+        "comment":       { "const": 1048576,  "description": "PST_COMMENT — in shell comment" },
+        "noExpand":      { "const": 4194304,  "description": "PST_NOEXPAND — don't expand in read_token_word" },
+        "noError":       { "const": 8388608,  "description": "PST_NOERROR — suppress yyerror messages" },
+        "string":        { "const": 16777216, "description": "PST_STRING — parsing string to command" },
+        "funSubst":      { "const": 67108864, "description": "PST_FUNSUBST — foreground command substitution" }
+      }
+    },
+
+    "CasePatternFlags": {
+      "type": "object",
+      "description": "PATTERN_LIST flags for case clause terminators.",
+      "properties": {
+        "fallthrough": { "const": 1, "description": "CASEPAT_FALLTHROUGH — ;& (execute next clause)" },
+        "testNext":    { "const": 2, "description": "CASEPAT_TESTNEXT — ;;& (test next pattern)" }
+      }
+    },
+
+    "ConditionType": {
+      "type": "object",
+      "description": "COND_COM type values for [[ ]] binary tree nodes.",
+      "properties": {
+        "and":    { "const": 1, "description": "COND_AND — &&" },
+        "or":     { "const": 2, "description": "COND_OR — ||" },
+        "unary":  { "const": 3, "description": "COND_UNARY — -f, -d, -z, etc." },
+        "binary": { "const": 4, "description": "COND_BINARY — ==, !=, -eq, etc." },
+        "term":   { "const": 5, "description": "COND_TERM — leaf word" },
+        "expr":   { "const": 6, "description": "COND_EXPR — parenthesized sub-expression" }
+      }
+    },
+
+    "RedirectInstruction": {
+      "type": "object",
+      "description": "r_instruction enum mapped to operator strings. See redirect.json for the operator enum.",
+      "properties": {
+        "r_output_direction":       { "const": ">",   "description": "fd > file" },
+        "r_input_direction":        { "const": "<",   "description": "fd < file" },
+        "r_appending_to":           { "const": ">>",  "description": "fd >> file" },
+        "r_reading_until":          { "const": "<<",  "description": "fd << DELIM (heredoc)" },
+        "r_reading_string":         { "const": "<<<", "description": "fd <<< word (herestring)" },
+        "r_deblank_reading_until":  { "const": "<<-", "description": "fd <<- DELIM (heredoc, strip tabs)" },
+        "r_duplicating_input":      { "const": "<&",  "description": "fd <& fd2" },
+        "r_duplicating_output":     { "const": ">&",  "description": "fd >& fd2" },
+        "r_input_output":           { "const": "<>",  "description": "fd <> file" },
+        "r_output_force":           { "const": ">|",  "description": "fd >| file (clobber)" },
+        "r_err_and_out":            { "const": "&>",  "description": "&> file (stdout+stderr)" },
+        "r_append_err_and_out":     { "const": "&>>", "description": "&>> file (append stdout+stderr)" },
+        "r_close_this":             { "const": ">&-", "description": "fd>&- or fd<&- (close)" },
+        "r_duplicating_input_word": { "const": "<&",  "description": "fd <& word (resolved at runtime)" },
+        "r_duplicating_output_word":{ "const": ">&",  "description": "fd >& word (resolved at runtime)" },
+        "r_move_input":             { "const": "<&",  "description": "fd<&fd2- (move)" },
+        "r_move_output":            { "const": ">&",  "description": "fd>&fd2- (move)" }
+      }
+    }
+  }
+}

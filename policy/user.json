@@ -1,0 +1,83 @@
+{
+  "version": "0.0.0",
+  "requirements": [
+    {
+      "id": "block-dangerous-commands",
+      "event": "pre-tool-use",
+      "enabled": true,
+      "requirement": "Block disk and device manipulation commands in Bash."
+    },
+    {
+      "id": "block-dangerous-paths",
+      "event": "pre-tool-use",
+      "enabled": true,
+      "requirement": "Block Bash access to sensitive system paths."
+    },
+    {
+      "id": "deny-bash-find",
+      "event": "pre-tool-use",
+      "enabled": true,
+      "requirement": "Block dangerous find usage such as -delete or -exec."
+    },
+    {
+      "id": "deny-chmod",
+      "event": "pre-tool-use",
+      "enabled": true,
+      "requirement": "Block chmod permission changes unless the user performs them manually."
+    },
+    {
+      "id": "deny-echo-write",
+      "event": "pre-tool-use",
+      "enabled": true,
+      "requirement": "Block echo or printf with shell redirection; use the Write tool instead."
+    },
+    {
+      "id": "deny-force-push",
+      "event": "pre-tool-use",
+      "enabled": true,
+      "requirement": "Block git push force operations."
+    },
+    {
+      "id": "deny-git-clean",
+      "event": "pre-tool-use",
+      "enabled": true,
+      "requirement": "Block git clean when force flags are present."
+    },
+    {
+      "id": "deny-git-reflog-operation",
+      "event": "pre-tool-use",
+      "enabled": true,
+      "requirement": "Block git reflog mutation operations."
+    },
+    {
+      "id": "deny-git-reset-hard",
+      "event": "pre-tool-use",
+      "enabled": true,
+      "requirement": "Block git reset --hard."
+    },
+    {
+      "id": "deny-rm",
+      "event": "pre-tool-use",
+      "enabled": true,
+      "requirement": "Block rm and require moving files to .cleanup/ or .backup/."
+    },
+    {
+      "id": "deny-rsync-delete",
+      "event": "pre-tool-use",
+      "enabled": true,
+      "requirement": "Block rsync --delete."
+    },
+    {
+      "id": "deny-sed-awk",
+      "event": "pre-tool-use",
+      "enabled": true,
+      "requirement": "Block sed -i and sed or awk with output redirection; use Edit instead."
+    },
+    {
+      "id": "deny-sudo",
+      "event": "pre-tool-use",
+      "enabled": true,
+      "requirement": "Block sudo and ask the user to run privileged commands manually."
+    }
+  ]
+}

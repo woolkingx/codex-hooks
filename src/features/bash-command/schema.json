@@ -1,0 +1,196 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "bash-command.feature.schema.json",
+  "title": "bash-command feature",
+  "description": "Module-owned feature data for Bash command matching.",
+  "type": "object",
+  "required": [
+    "value"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "value": {
+      "$ref": "#/definitions/expression"
+    }
+  },
+  "definitions": {
+    "expression": {
+      "oneOf": [
+        {
+          "$ref": "#/definitions/matcher"
+        },
+        {
+          "type": "object",
+          "required": [
+            "all"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "all": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "$ref": "#/definitions/expression"
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": [
+            "any"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "any": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "$ref": "#/definitions/expression"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "matcher": {
+      "type": "object",
+      "required": [
+        "path"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "type": "string",
+          "pattern": "^\\$(\\.|\\[|$)"
+        },
+        "name": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "object",
+              "required": [
+                "in"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "in": {
+                  "type": "array",
+                  "minItems": 1,
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            {
+              "type": "object",
+              "required": [
+                "regex"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "regex": {
+                  "type": "string"
+                }
+              }
+            }
+          ]
+        },
+        "arg": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string"
+            },
+            "contains": {
+              "type": "string"
+            },
+            "regex": {
+              "type": "string"
+            }
+          },
+          "anyOf": [
+            {
+              "required": [
+                "contains"
+              ]
+            },
+            {
+              "required": [
+                "regex"
+              ]
+            }
+          ]
+        },
+        "flags": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string"
+            },
+            "contains": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "string"
+              }
+            },
+            "regex": {
+              "type": "string"
+            },
+            "mode": {
+              "type": "string",
+              "enum": [
+                "any",
+                "all"
+              ],
+              "default": "any"
+            }
+          },
+          "anyOf": [
+            {
+              "required": [
+                "contains"
+              ]
+            },
+            {
+              "required": [
+                "regex"
+              ]
+            }
+          ]
+        },
+        "writes_to_file": {
+          "type": "boolean"
+        }
+      },
+      "anyOf": [
+        {
+          "required": [
+            "name"
+          ]
+        },
+        {
+          "required": [
+            "arg"
+          ]
+        },
+        {
+          "required": [
+            "flags"
+          ]
+        },
+        {
+          "required": [
+            "writes_to_file"
+          ]
+        }
+      ]
+    }
+  }
+}

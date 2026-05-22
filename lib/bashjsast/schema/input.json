@@ -1,0 +1,48 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "input.json",
+  "title": "Bash Input System",
+  "description": "Input stream structures from input.h. How the shell reads characters.",
+
+  "definitions": {
+
+    "StreamType": {
+      "type": "string",
+      "description": "enum stream_type — where input comes from.",
+      "enum": ["st_none", "st_stdin", "st_stream", "st_string", "st_bstream"]
+    },
+
+    "BashInput": {
+      "type": "object",
+      "description": "BASH_INPUT struct — the current input source.",
+      "properties": {
+        "type": { "$ref": "#/definitions/StreamType" },
+        "name": { "type": "string", "description": "Name of input source (filename, etc.)" }
+      }
+    },
+
+    "BufferedStream": {
+      "type": "object",
+      "description": "BUFFERED_STREAM — custom buffered I/O for file descriptors.",
+      "properties": {
+        "fd":     { "type": "integer" },
+        "size":   { "type": "integer" },
+        "used":   { "type": "integer" },
+        "flag":   { "type": "integer" },
+        "inputp": { "type": "integer", "description": "Input pointer index into buffer" }
+      }
+    },
+
+    "BufferFlags": {
+      "type": "object",
+      "properties": {
+        "B_EOF":          { "const": 1 },
+        "B_ERROR":        { "const": 2 },
+        "B_UNBUFF":       { "const": 4 },
+        "B_WASBASHINPUT": { "const": 8 },
+        "B_TEXT":         { "const": 16 },
+        "B_SHAREDBUF":    { "const": 32, "description": "Shared input buffer" }
+      }
+    }
+  }
+}

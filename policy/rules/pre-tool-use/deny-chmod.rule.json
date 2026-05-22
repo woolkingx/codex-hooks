@@ -1,0 +1,25 @@
+{
+  "id": "deny-chmod",
+  "event": "pre-tool-use",
+  "priority": 70,
+  "trigger": {
+    "$.tool_name": "Bash"
+  },
+  "feature": {
+    "bash-command": {
+      "value": {
+        "path": "$.tool_input.command",
+        "name": "chmod"
+      }
+    }
+  },
+  "output": {
+    "decision": "block",
+    "reason": "chmod changes file permissions. Ask the user to run it manually if needed.",
+    "hookSpecificOutput": {
+      "hookEventName": "PreToolUse",
+      "permissionDecision": "deny",
+      "permissionDecisionReason": "chmod changes file permissions. Ask the user to run it manually if needed."
+    }
+  }
+}

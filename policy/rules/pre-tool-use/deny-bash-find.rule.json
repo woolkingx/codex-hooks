@@ -1,0 +1,32 @@
+{
+  "id": "deny-bash-find",
+  "event": "pre-tool-use",
+  "priority": 50,
+  "trigger": {
+    "$.tool_name": "Bash"
+  },
+  "feature": {
+    "bash-command": {
+      "value": {
+        "path": "$.tool_input.command",
+        "flags": {
+          "name": "find",
+          "contains": [
+            "-delete",
+            "-exec"
+          ],
+          "mode": "any"
+        }
+      }
+    }
+  },
+  "output": {
+    "decision": "block",
+    "reason": "find with -delete or -exec is disabled. Use explicit rm/commands instead.",
+    "hookSpecificOutput": {
+      "hookEventName": "PreToolUse",
+      "permissionDecision": "deny",
+      "permissionDecisionReason": "find with -delete or -exec is disabled."
+    }
+  }
+}

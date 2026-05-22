@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>codex-hooks Deployment</title>
+  <style>
+    body { font-family: system-ui, sans-serif; line-height: 1.5; margin: 2rem auto; max-width: 1120px; padding: 0 1rem; color: #1f2933; }
+    table { border-collapse: collapse; width: 100%; margin: 1rem 0; }
+    th, td { border: 1px solid #c7d0da; padding: 0.5rem; text-align: left; vertical-align: top; }
+    th { background: #eef2f6; } code, pre { background: #f3f5f7; border-radius: 4px; } code { padding: 0.1rem 0.25rem; } pre { padding: 0.75rem; overflow-x: auto; }
+  </style>
+  <link rel="stylesheet" href="handbook.css">
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar" aria-labelledby="handbook-index">
+      <h2 id="handbook-index">Index</h2>
+      <nav aria-label="Handbook chapters">
+        <ol>
+          <li><a href="index.html">Handbook Home</a></li>
+          <li><a href="artifact-roles.html">Artifact Roles</a></li>
+          <li><a href="topology.html">System Topology</a></li>
+          <li><a href="schema-tree.html">Data Ontology</a></li>
+          <li><a href="api-schema.html">API Schema</a></li>
+          <li><a href="event-model.html">Event Model</a></li>
+          <li><a href="policy.html">Policy</a></li>
+          <li><a href="usage.html">Usage</a></li>
+          <li><a href="model-onboarding.html">Model Onboarding</a></li>
+          <li><a href="config.html">Config</a></li>
+          <li><a href="runtime-kernels.html">Runtime Kernels</a></li>
+          <li><a href="interfaces.html">Interfaces</a></li>
+          <li><a href="deployment.html">Deployment</a></li>
+          <li><a href="decision-flow.html">Decision Flow</a></li>
+          <li><a href="stage-actions.html">Stage Actions</a></li>
+          <li><a href="handbook-skills.html">Handbook Skills</a></li>
+          <li><a href="acceptance-gates.html">Acceptance Gates</a></li>
+          <li><a href="roadmap.html">Roadmap</a></li>
+        </ol>
+      </nav>
+    </aside>
+
+    <main class="content">
+  <h1>Deployment</h1>
+
+  <section id="owner">
+    <h2>Deploy Owner</h2>
+    <pre><code>deploy
+|- target: user, project, managed, plugin, dry-run
+|- environment: platform, cwd, git root, codex home, node, package root
+|- artifact: bin command, package root, version
+|- hook_config: generated official Codex hooks config
+|- validation: schema, policy source, rule files, event coverage, config syntax
+|- installation: destination, backup, mode, write plan
+`- doctor: checks, warnings, failures</code></pre>
+    <p><code>deploy</code> owns install-time data. Runtime <code>config</code> decides which rule files to load after a hook starts; <code>deploy</code> decides whether this tool can be installed safely into a Codex hook layer and what would be written there.</p>
+  </section>
+
+  <section id="v1-contract">
+    <h2>V1 Contract</h2>
+    <table>
+      <thead>
+        <tr><th>service</th><th>owner data</th><th>write behavior</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>render-hooks</code></td><td><code>deploy.hook_config</code></td><td>Pure generation only. It returns official Codex hooks config and writes nothing. Optional <code>--log</code> injects the JSONL side-channel into the generated hook command.</td></tr>
+        <tr><td><code>doctor</code></td><td><code>deploy.environment</code>, <code>deploy.validation</code>, <code>deploy.doctor</code></td><td>Read-only checks for Node, bin command, policy paths, user-rule sync, Codex config target, schema reachability, and event coverage.</td></tr>
+        <tr><td><code>install</code></td><td><code>deploy.installation</code></td><td>Dry-run by default. Real writes require explicit <code>--apply</code> and keep a backup when replacing an existing hooks config.</td></tr>
+        <tr><td><code>hook command</code></td><td><code>deploy.environment.cwd</code></td><td>Runtime command must not depend on the process cwd. Repo-owned schemas resolve from module paths; user-selected policy paths resolve from configured command arguments.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section id="deployment-targets">
+    <h2>Targets</h2>
+    <table>
+      <thead>
+        <tr><th>target</th><th>destination</th><th>status</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>project</code></td><td><code>&lt;git-root&gt;/.codex/hooks.json</code></td><td>Implemented. <code>install</code> returns a plan; <code>install --apply</code> writes with backup.</td></tr>
+        <tr><td><code>user</code></td><td><code>$CODEX_HOME/hooks.json</code> or <code>~/.codex/hooks.json</code></td><td>Implemented. <code>install</code> returns a plan; <code>install --apply</code> writes with backup.</td></tr>
+        <tr><td><code>managed</code></td><td>enterprise managed hook directory or requirements layer</td><td>Roadmap.</td></tr>
+        <tr><td><code>plugin</code></td><td>Codex plugin hook manifest</td><td>Roadmap.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section id="codex-hooks-json">
+    <h2>Codex Hooks Config</h2>
+    <p>Codex reads hook configuration from a user or project hooks JSON file. In this repo and the current local runtime, the file is named <code>hooks.json</code>:</p>
+    <table>
+      <thead>
+        <tr><th>scope</th><th>path</th><th>owner</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>user</td><td><code>$CODEX_HOME/hooks.json</code> or <code>~/.codex/hooks.json</code></td><td>Codex user config layer. <code>codex-hooks install --target user --apply</code> writes this file with backup.</td></tr>
+        <tr><td>project</td><td><code>&lt;git-root&gt;/.codex/hooks.json</code></td><td>Project-local Codex config layer. <code>codex-hooks install --target project --apply</code> writes this file with backup.</td></tr>
+      </tbody>
+    </table>
+    <p>The generated JSON shape is official Codex hook config data. Each top-level key is a Codex hook event name. Each event maps to matcher groups, and each matcher group contains command hooks.</p>
+    <pre><code>{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"/path/to/codex-hooks/src/adapters/cli.mjs\" hook --rules \"policy/rules\" --log \"hooks.jsonl\"",
+            "timeout": 30,
+            "statusMessage": "codex-hooks PreToolUse"
+          }
+        ]
+      }
+    ]
+  }
+}</code></pre>
+    <table>
+      <thead>
+        <tr><th>field</th><th>meaning</th><th>codex-hooks behavior</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>hooks</code></td><td>Root object containing event hook entries.</td><td>Generated by <code>render-hooks</code> and written by <code>install --apply</code>.</td></tr>
+        <tr><td><code>PreToolUse</code>, <code>PostToolUse</code>, etc.</td><td>Official Codex hook event names.</td><td>Generated for every event owner registered in <code>src/core/handlers.mjs</code>.</td></tr>
+        <tr><td><code>matcher</code></td><td>Codex event matcher string.</td><td>Defaults to <code>*</code>.</td></tr>
+        <tr><td><code>type</code></td><td>Hook handler type.</td><td>Always <code>command</code> in V1.</td></tr>
+        <tr><td><code>command</code></td><td>Shell command Codex executes for the hook event.</td><td>Calls <code>codex-hooks hook</code> with the selected <code>--rules</code>, optional <code>--profile</code>, and optional <code>--log</code>.</td></tr>
+        <tr><td><code>timeout</code></td><td>Hook command timeout in seconds.</td><td>Defaults to <code>30</code>.</td></tr>
+        <tr><td><code>statusMessage</code></td><td>Status text Codex may show while the hook runs.</td><td>Generated as <code>codex-hooks &lt;EventName&gt;</code>.</td></tr>
+      </tbody>
+    </table>
+    <p>Do not hand-edit generated hooks config as the primary workflow. Tell Codex the desired install or hook behavior; Codex should run doctor, render or dry-run install, then write the config only when requested.</p>
+  </section>
+
+  <section id="work-status">
+    <h2>Work Status</h2>
+    <table>
+      <thead>
+        <tr><th>area</th><th>current state</th><th>next proof</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>hook</code> and <code>cli run</code></td><td>Implemented as layer executor: input validate -> trigger + feature rule data -> output validate -> project to wire.</td><td>Keep schema-boundary tests green; compiler failures are logged as runtime observations.</td></tr>
+        <tr><td><code>deploy</code></td><td>Schema root, render-hooks, doctor with policy sync, install plan, and <code>install --apply</code> with atomic write and backup are implemented.</td><td><code>GATE-DEPLOY-01</code>.</td></tr>
+        <tr><td><code>log</code></td><td>Schema root, runtime JSONL writer, redaction, CLI tail, fail-closed error records, and deploy-time <code>--log</code> command injection are implemented.</td><td>Keep log schema validation and CLI log smoke in the observability suite.</td></tr>
+        <tr><td><code>status</code></td><td>Schema root and read-only CLI projection from log tail are implemented.</td><td>Keep status schema validation in the observability suite.</td></tr>
+        <tr><td><code>public release shell</code></td><td>README, LICENSE, CHANGELOG, CI, package metadata, examples, and collaboration docs are implemented.</td><td><code>GATE-PUBLIC-01</code>.</td></tr>
+        <tr><td><code>daemon</code>, <code>admin api</code>, <code>ui</code></td><td>Roadmap only.</td><td>Future gates after V1 deploy and observability are stable.</td></tr>
+      </tbody>
+    </table>
+  </section>
+    </main>
+  </div>
+</body>
+</html>

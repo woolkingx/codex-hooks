@@ -1,0 +1,37 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "hashtable.json",
+  "title": "Bash Hash Table",
+  "description": "Generic hash table from hashlib.h. Used for variables, aliases, builtins, commands.",
+
+  "definitions": {
+
+    "HashTable": {
+      "type": "object",
+      "description": "HASH_TABLE struct.",
+      "properties": {
+        "nbuckets": { "type": "integer", "default": 128 },
+        "nentries": { "type": "integer" }
+      }
+    },
+
+    "BucketContents": {
+      "type": "object",
+      "description": "BUCKET_CONTENTS — a single entry in a hash bucket.",
+      "properties": {
+        "key":         { "type": "string" },
+        "data":        { "description": "Opaque pointer to stored data" },
+        "khash":       { "type": "integer", "description": "Hash value of key" },
+        "timesFound":  { "type": "integer" }
+      }
+    },
+
+    "HashFlags": {
+      "type": "object",
+      "properties": {
+        "HASH_NOSRCH": { "const": 1, "description": "Don't search, just return bucket" },
+        "HASH_CREATE": { "const": 2, "description": "Create entry if not found" }
+      }
+    }
+  }
+}

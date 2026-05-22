@@ -1,0 +1,34 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "longjmp.json",
+  "title": "Bash Longjmp Codes",
+  "description": "Jump targets for error recovery from bashjmp.h.",
+
+  "definitions": {
+
+    "LongjmpCodes": {
+      "type": "object",
+      "description": "Second argument to longjmp/siglongjmp — determines recovery action.",
+      "properties": {
+        "NOT_JUMPED": { "const": 0, "description": "Not returning from a longjmp" },
+        "FORCE_EOF":  { "const": 1, "description": "Stop parsing" },
+        "DISCARD":    { "const": 2, "description": "Discard current command" },
+        "EXITPROG":   { "const": 3, "description": "Unconditionally exit the program" },
+        "ERREXIT":    { "const": 4, "description": "Exit due to error condition" },
+        "SIGEXIT":    { "const": 5, "description": "Exit due to fatal terminating signal" },
+        "EXITBLTIN":  { "const": 6, "description": "Exit due to the exit builtin" }
+      }
+    },
+
+    "JumpTargets": {
+      "type": "object",
+      "description": "Global procenv_t jump targets.",
+      "properties": {
+        "top_level":          { "description": "Main shell recovery point" },
+        "subshell_top_level": { "description": "Subshell recovery point" },
+        "return_catch":       { "description": "Used by return builtin" },
+        "wait_intr_buf":      { "description": "Wait interrupt recovery" }
+      }
+    }
+  }
+}

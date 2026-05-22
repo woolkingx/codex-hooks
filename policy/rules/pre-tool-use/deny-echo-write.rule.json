@@ -1,0 +1,38 @@
+{
+  "id": "deny-echo-write",
+  "event": "pre-tool-use",
+  "priority": 50,
+  "trigger": {
+    "$.tool_name": "Bash"
+  },
+  "feature": {
+    "bash-command": {
+      "value": {
+        "all": [
+          {
+            "path": "$.tool_input.command",
+            "name": {
+              "in": [
+                "echo",
+                "printf"
+              ]
+            }
+          },
+          {
+            "path": "$.tool_input.command",
+            "writes_to_file": true
+          }
+        ]
+      }
+    }
+  },
+  "output": {
+    "decision": "block",
+    "reason": "echo/printf with shell redirection is disabled. Use Write tool instead.",
+    "hookSpecificOutput": {
+      "hookEventName": "PreToolUse",
+      "permissionDecision": "deny",
+      "permissionDecisionReason": "echo/printf with shell redirection is disabled."
+    }
+  }
+}

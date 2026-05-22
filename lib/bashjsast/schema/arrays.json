@@ -1,0 +1,63 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "arrays.json",
+  "title": "Bash Array Types",
+  "description": "Indexed and associative array structures from array.h, assoc.h, arrayfunc.h.",
+
+  "definitions": {
+
+    "Array": {
+      "type": "object",
+      "description": "Indexed array (ARRAY struct).",
+      "properties": {
+        "maxIndex":    { "type": "integer" },
+        "numElements": { "type": "integer" }
+      }
+    },
+
+    "ArrayElement": {
+      "type": "object",
+      "properties": {
+        "ind":   { "type": "integer", "description": "Array index" },
+        "value": { "type": "string" }
+      }
+    },
+
+    "ArrayType": {
+      "type": "integer",
+      "description": "Values for array_eltstate_t type field.",
+      "enum": [-1, 0, 1, 2],
+      "x-names": {
+        "ARRAY_INVALID": -1,
+        "ARRAY_SCALAR":   0,
+        "ARRAY_INDEXED":  1,
+        "ARRAY_ASSOC":    2
+      }
+    },
+
+    "ArrayValueFlags": {
+      "type": "object",
+      "description": "AV_* flags for array_value_internal.",
+      "properties": {
+        "AV_ALLOWALL":   { "const": 1,   "description": "Treat a[@] like $@" },
+        "AV_QUOTED":     { "const": 2 },
+        "AV_USEIND":     { "const": 4 },
+        "AV_USEVAL":     { "const": 8 },
+        "AV_ASSIGNRHS":  { "const": 16,  "description": "No splitting" },
+        "AV_NOEXPAND":   { "const": 32,  "description": "Don't expand assoc subscripts" },
+        "AV_ONEWORD":    { "const": 64 },
+        "AV_ATSTARKEYS": { "const": 128, "description": "@ and * as keys, not special" }
+      }
+    },
+
+    "ValidArrayFlags": {
+      "type": "object",
+      "description": "VA_* flags for valid_array_reference.",
+      "properties": {
+        "VA_NOEXPAND": { "const": 1 },
+        "VA_ONEWORD":  { "const": 2 },
+        "VA_ALLOWALL": { "const": 4 }
+      }
+    }
+  }
+}

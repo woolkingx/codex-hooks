@@ -1,0 +1,116 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "shell.json",
+  "title": "Bash Shell Core",
+  "description": "Master shell types from shell.h: exit statuses, match flags, parser save state, fd bitmap.",
+
+  "definitions": {
+
+    "ExitStatus": {
+      "type": "object",
+      "description": "Special exit status codes.",
+      "properties": {
+        "EXECUTION_SUCCESS": { "const": 0 },
+        "EXECUTION_FAILURE": { "const": 1 },
+        "EX_BADUSAGE":       { "const": 2,   "description": "Builtin usage error" },
+        "EX_MISCERROR":      { "const": 2,   "description": "Miscellaneous error" },
+        "EX_RETRYFAIL":      { "const": 124, "description": "Retry failure" },
+        "EX_WEXPCOMSUB":     { "const": 125, "description": "Word expansion command substitution" },
+        "EX_BINARY_FILE":    { "const": 126, "description": "Binary file" },
+        "EX_NOEXEC":         { "const": 126, "description": "Cannot execute" },
+        "EX_NOINPUT":        { "const": 126, "description": "No input" },
+        "EX_NOTFOUND":       { "const": 127, "description": "Command not found" },
+        "EX_SHERRBASE":      { "const": 256, "description": "Base for internal error values" },
+        "EX_BADSYNTAX":      { "const": 257, "description": "Shell syntax error" },
+        "EX_USAGE":          { "const": 258, "description": "Syntax error in usage" },
+        "EX_REDIRFAIL":      { "const": 259, "description": "Redirection failed" },
+        "EX_BADASSIGN":      { "const": 260, "description": "Variable assignment error" },
+        "EX_EXPFAIL":        { "const": 261, "description": "Word expansion failed" },
+        "EX_DISKFALLBACK":   { "const": 262, "description": "Fall back to disk command from builtin" },
+        "EX_UTILERROR":      { "const": 263, "description": "POSIX special builtin utility error" }
+      }
+    },
+
+    "MatchFlags": {
+      "type": "object",
+      "description": "MATCH_* flags for parameter pattern substitution.",
+      "properties": {
+        "MATCH_ANY":      { "const": 0,     "description": "Match anywhere" },
+        "MATCH_BEG":      { "const": 1,     "description": "Match at beginning (# prefix)" },
+        "MATCH_END":      { "const": 2,     "description": "Match at end (% suffix)" },
+        "MATCH_TYPEMASK": { "const": 3,     "description": "Mask for match type bits" },
+        "MATCH_GLOBREP":  { "const": 16,    "description": "Global replacement (//)" },
+        "MATCH_QUOTED":   { "const": 32,    "description": "In quoted context" },
+        "MATCH_ASSIGNRHS": { "const": 64,   "description": "Assignment RHS" },
+        "MATCH_STARSUB":  { "const": 128,   "description": "Star subscript" },
+        "MATCH_EXPREP":   { "const": 256,   "description": "Expand replacement string" }
+      }
+    },
+
+    "ParserSaveState": {
+      "type": "object",
+      "description": "sh_parser_state_t — saved parser state for PROMPT_COMMAND etc.",
+      "properties": {
+        "parser_state":                { "type": "integer", "description": "PST_* bitmask" },
+        "token_state":                 { "description": "Token state array" },
+        "parsing_command":             { "type": "integer" },
+        "token":                       { "type": "string" },
+        "token_buffer_size":           { "type": "integer" },
+        "eof_token":                   { "type": "integer" },
+        "input_line_terminator":       { "type": "integer" },
+        "eof_encountered":             { "type": "integer" },
+        "eol_lookahead":               { "type": "integer" },
+        "current_command_line_count":  { "type": "integer" },
+        "remember_on_history":         { "type": "integer" },
+        "history_expansion_inhibited": { "type": "integer" },
+        "last_command_exit_value":     { "type": "integer" },
+        "expand_aliases":              { "type": "integer" },
+        "echo_input_at_read":          { "type": "integer" },
+        "need_here_doc":               { "type": "integer" },
+        "here_doc_first_line":         { "type": "integer" },
+        "esacs_needed":                { "type": "integer" },
+        "expecting_in":                { "type": "integer" },
+        "incmd":                       { "type": "integer" }
+      }
+    },
+
+    "FdBitmap": {
+      "type": "object",
+      "description": "Bitmap of file descriptors to close during execution.",
+      "properties": {
+        "size":   { "type": "integer", "default": 32 },
+        "bitmap": { "type": "string", "description": "Byte array as bitmap" }
+      }
+    },
+
+    "UserInfo": {
+      "type": "object",
+      "description": "Information about the current user.",
+      "properties": {
+        "uid":       { "type": "integer" },
+        "euid":      { "type": "integer" },
+        "saveuid":   { "type": "integer" },
+        "gid":       { "type": "integer" },
+        "egid":      { "type": "integer" },
+        "savegid":   { "type": "integer" },
+        "user_name": { "type": "string" },
+        "shell":     { "type": "string" },
+        "home_dir":  { "type": "string" }
+      }
+    },
+
+    "Constants": {
+      "type": "object",
+      "description": "Shell-wide constants.",
+      "properties": {
+        "NO_PIPE":       { "const": -1 },
+        "REDIRECT_BOTH": { "const": -2 },
+        "NO_VARIABLE":   { "const": -1 },
+        "HEREDOC_MAX":   { "const": 16 },
+        "FD_BITMAP_SIZE": { "const": 32 },
+        "CTLESC":        { "const": "\\u0001" },
+        "CTLNUL":        { "const": "\\u007f" }
+      }
+    }
+  }
+}

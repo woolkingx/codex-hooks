@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>codex-hooks Acceptance Gates</title>
+  <style>
+    body { font-family: system-ui, sans-serif; line-height: 1.5; margin: 2rem auto; max-width: 1120px; padding: 0 1rem; color: #1f2933; }
+    table { border-collapse: collapse; width: 100%; margin: 1rem 0; }
+    th, td { border: 1px solid #c7d0da; padding: 0.5rem; text-align: left; vertical-align: top; }
+    th { background: #eef2f6; } code { background: #f3f5f7; border-radius: 4px; padding: 0.1rem 0.25rem; }
+  </style>
+  <link rel="stylesheet" href="handbook.css">
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar" aria-labelledby="handbook-index">
+      <h2 id="handbook-index">Index</h2>
+      <nav aria-label="Handbook chapters">
+        <ol>
+          <li><a href="index.html">Handbook Home</a></li>
+          <li><a href="artifact-roles.html">Artifact Roles</a></li>
+          <li><a href="topology.html">System Topology</a></li>
+          <li><a href="schema-tree.html">Data Ontology</a></li>
+          <li><a href="api-schema.html">API Schema</a></li>
+          <li><a href="event-model.html">Event Model</a></li>
+          <li><a href="policy.html">Policy</a></li>
+          <li><a href="usage.html">Usage</a></li>
+          <li><a href="model-onboarding.html">Model Onboarding</a></li>
+          <li><a href="config.html">Config</a></li>
+          <li><a href="runtime-kernels.html">Runtime Kernels</a></li>
+          <li><a href="interfaces.html">Interfaces</a></li>
+          <li><a href="deployment.html">Deployment</a></li>
+          <li><a href="decision-flow.html">Decision Flow</a></li>
+          <li><a href="stage-actions.html">Stage Actions</a></li>
+          <li><a href="handbook-skills.html">Handbook Skills</a></li>
+          <li><a href="acceptance-gates.html">Acceptance Gates</a></li>
+          <li><a href="roadmap.html">Roadmap</a></li>
+        </ol>
+      </nav>
+    </aside>
+
+    <main class="content">
+  <h1>Acceptance Gates</h1>
+
+  <section id="gates">
+    <p>Gates follow data ontology. A schema is accepted only after the owned data object is named.</p>
+    <table>
+      <thead><tr><th>gate</th><th>status</th><th>proof</th></tr></thead>
+      <tbody>
+        <tr><td>GATE-DATA-ONTOLOGY-01</td><td>accepted</td><td>Before adding any schema, name the data object, owner, lifecycle, reader, writer, and why it is not already event input, event rule, event output, log, status, config, deploy, profile, or user requirement data.</td></tr>
+        <tr><td>GATE-SCHEMA-TREE-ROOT-01</td><td>accepted</td><td>Every active schema resolves from <code>schema/codex-hooks.schema.json</code> through <code>Loader.resolve()</code>; runtime code does not compose synthetic schemas or bypass returned sub-loader scope.</td></tr>
+        <tr><td>GATE-EVENT-TRIPLE-01</td><td>accepted</td><td>Each event runtime exposes only input schema, rule schema, output schema, and executor. No event meta schema, event PDU, derived-field schema, or decision schema root.</td></tr>
+        <tr><td>GATE-RULE-TRIGGER-FEATURE-01</td><td>accepted</td><td>Rule schema defines the only runtime rule data: trigger path values, admitted feature module data, and official output data. Runtime rejects fields/conditions/process/params/write rule data.</td></tr>
+        <tr><td>GATE-LOG-ONTOLOGY-01</td><td>accepted</td><td>Compiler gap, report, trace, explain, diagnostic, and runtime errors are log information. No separate gap schema, explain schema, trace schema, diagnostic schema, or error root schema.</td></tr>
+        <tr><td>GATE-FEATURE-MODULE-01</td><td>accepted</td><td>Features are module-owned functions with module-owned schemas under <code>src/features/&lt;feature&gt;/</code>. There is no central feature registry schema root. Persisted feature parameters live under <code>rule.feature.&lt;name&gt;</code>.</td></tr>
+        <tr><td>GATE-USER-AUTHORING-01</td><td>accepted</td><td><code>policy/user.json</code> is user requirement data and compiler input. It is not event runtime data and must not contain rule clauses, feature config, diagnostics, traces, or runtime config.</td></tr>
+        <tr><td>GATE-RULE-RUNTIME-01</td><td>accepted</td><td><code>policy/rules/&lt;event&gt;/&lt;id&gt;.rule.json</code> is the only persistent compiler output required by runtime. If compilation fails, the compiler writes log information and exits non-zero.</td></tr>
+        <tr><td>GATE-USER-RULE-SYNC-01</td><td>accepted</td><td><code>policy/user.json</code> and <code>policy/rules/&lt;event&gt;/&lt;id&gt;.rule.json</code> are a bidirectional invariant. Verification fails on missing rules, orphan rules, id mismatch, event mismatch, enabled mismatch, invalid JSON, or invalid rule schema.</td></tr>
+        <tr><td>GATE-DOC-01</td><td>accepted</td><td>Handbook links resolve; index parses; forbidden pseudo-schema vocabulary is absent from canonical paths.</td></tr>
+        <tr><td>GATE-PUBLIC-01</td><td>accepted</td><td>Public release shell has README, LICENSE, CHANGELOG, package metadata, CI, examples, security policy, contribution guide, and repo-local <code>npm run verify</code>.</td></tr>
+      </tbody>
+    </table>
+  </section>
+    </main>
+  </div>
+</body>
+</html>

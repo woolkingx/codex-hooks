@@ -1,0 +1,13 @@
+{
+  "cwd": "/tmp/codex-hooks",
+  "hook_event_name": "PermissionRequest",
+  "model": "gpt-5.4",
+  "permission_mode": "default",
+  "session_id": "session-1",
+  "tool_input": {
+    "command": "echo ok"
+  },
+  "tool_name": "Bash",
+  "transcript_path": null,
+  "turn_id": "turn-1"
+}

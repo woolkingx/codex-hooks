@@ -1,0 +1,27 @@
+{
+  "id": "block-dangerous-paths",
+  "event": "pre-tool-use",
+  "priority": 60,
+  "trigger": {
+    "$.tool_name": "Bash"
+  },
+  "feature": {
+    "bash-command": {
+      "value": {
+        "path": "$.tool_input.command",
+        "arg": {
+          "regex": "/(etc/(passwd|shadow|sudoers|ssh|cron)|boot/|proc/sys|sys/kernel)"
+        }
+      }
+    }
+  },
+  "output": {
+    "decision": "block",
+    "reason": "Access to sensitive system paths is disabled.",
+    "hookSpecificOutput": {
+      "hookEventName": "PreToolUse",
+      "permissionDecision": "deny",
+      "permissionDecisionReason": "Access to sensitive system paths is disabled."
+    }
+  }
+}

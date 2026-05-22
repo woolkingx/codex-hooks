@@ -1,0 +1,84 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "session-start.rule.schema.json",
+  "title": "session-start rule",
+  "description": "Event-owned trigger + feature + output rule data schema.",
+  "type": "object",
+  "required": [
+    "id",
+    "event",
+    "output"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+    },
+    "event": {
+      "type": "string",
+      "const": "session-start"
+    },
+    "priority": {
+      "type": "integer",
+      "default": 100
+    },
+    "enabled": {
+      "oneOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "string",
+          "enum": [
+            "test"
+          ]
+        }
+      ]
+    },
+    "source": {
+      "type": "object"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "tests": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true
+      }
+    },
+    "trigger": {
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^\\$(\\.|\\[|$)"
+      },
+      "additionalProperties": {
+        "type": [
+          "string",
+          "number",
+          "boolean",
+          "null"
+        ]
+      },
+      "default": {}
+    },
+    "feature": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "bash-command": {
+          "$ref": "../src/features/bash-command/schema.json"
+        }
+      },
+      "default": {}
+    },
+    "output": {
+      "$ref": "api/openai-codex/generated/session-start.command.output.schema.json"
+    }
+  }
+}

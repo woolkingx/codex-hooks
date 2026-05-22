@@ -1,0 +1,125 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "codex-hooks.deploy",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "target": { "enum": ["project", "user", "managed", "plugin", "dry-run"] },
+    "environment": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "platform": { "type": "string" },
+        "cwd": { "type": "string" },
+        "git_root": { "type": ["string", "null"] },
+        "codex_home": { "type": "string" },
+        "node_version": { "type": "string" },
+        "package_root": { "type": "string" }
+      },
+      "required": ["platform", "cwd", "git_root", "codex_home", "node_version", "package_root"]
+    },
+    "artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "bin_command": { "type": "string" },
+        "package_root": { "type": "string" },
+        "version": { "type": "string" }
+      },
+      "required": ["bin_command", "package_root", "version"]
+    },
+    "hook_config": { "$ref": "#/definitions/hook_config" },
+    "validation": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/check" },
+      "default": []
+    },
+    "installation": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "destination": { "type": "string" },
+        "format": { "enum": ["hooks.json", "config.toml", "plugin"] },
+        "mode": { "enum": ["dry-run", "write"] },
+        "backup": { "type": "boolean" },
+        "will_write": { "type": "array", "items": { "type": "string" }, "default": [] }
+      },
+      "required": ["destination", "format", "mode", "backup", "will_write"]
+    },
+    "doctor": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "ok": { "type": "boolean" },
+        "checks": { "type": "array", "items": { "$ref": "#/definitions/check" } },
+        "warnings": { "type": "array", "items": { "type": "string" }, "default": [] },
+        "failures": { "type": "array", "items": { "type": "string" }, "default": [] }
+      },
+      "required": ["ok", "checks", "warnings", "failures"]
+    }
+  },
+  "required": ["target", "environment", "artifact", "hook_config", "validation", "installation", "doctor"],
+  "definitions": {
+    "check": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string" },
+        "status": { "enum": ["pass", "warn", "fail"] },
+        "message": { "type": "string" }
+      },
+      "required": ["name", "status", "message"]
+    },
+    "hook_config": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "hooks": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "PermissionRequest": { "$ref": "#/definitions/matcher_groups" },
+            "PostCompact": { "$ref": "#/definitions/matcher_groups" },
+            "PostToolUse": { "$ref": "#/definitions/matcher_groups" },
+            "PreCompact": { "$ref": "#/definitions/matcher_groups" },
+            "PreToolUse": { "$ref": "#/definitions/matcher_groups" },
+            "SessionStart": { "$ref": "#/definitions/matcher_groups" },
+            "Stop": { "$ref": "#/definitions/matcher_groups" },
+            "SubagentStart": { "$ref": "#/definitions/matcher_groups" },
+            "UserPromptSubmit": { "$ref": "#/definitions/matcher_groups" }
+          }
+        }
+      },
+      "required": ["hooks"]
+    },
+    "matcher_groups": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/matcher_group" },
+      "minItems": 1
+    },
+    "matcher_group": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "matcher": { "type": "string" },
+        "hooks": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/hook_handler" },
+          "minItems": 1
+        }
+      },
+      "required": ["matcher", "hooks"]
+    },
+    "hook_handler": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "command" },
+        "command": { "type": "string" },
+        "timeout": { "type": "integer", "minimum": 1 },
+        "statusMessage": { "type": "string" }
+      },
+      "required": ["type", "command", "timeout", "statusMessage"]
+    }
+  }
+}

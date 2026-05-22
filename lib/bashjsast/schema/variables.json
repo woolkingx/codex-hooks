@@ -1,0 +1,155 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "variables.json",
+  "title": "Bash Variable Types",
+  "description": "Variable structure, attributes, and special variables from variables.h. Relevant to parser for assignment recognition and declare/typeset flag parsing.",
+
+  "definitions": {
+
+    "Variable": {
+      "type": "object",
+      "description": "Shell variable representation. Maps to SHELL_VAR struct.",
+      "required": ["name"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Variable name."
+        },
+        "value": {
+          "description": "Variable value. Type depends on attributes.",
+          "oneOf": [
+            { "type": "string" },
+            { "type": "integer" },
+            { "type": "array", "items": { "type": "string" } },
+            { "type": "object", "additionalProperties": { "type": "string" } },
+            { "type": "null" }
+          ]
+        },
+        "attributes": {
+          "type": "integer",
+          "description": "Bitmask of att_* flags."
+        }
+      },
+      "additionalProperties": false
+    },
+
+    "VariableAttributes": {
+      "type": "object",
+      "description": "User-visible variable attribute flags (att_*). Maps to declare/typeset options.",
+      "properties": {
+        "exported":   { "const": 1,    "description": "att_exported — export to environment (-x)" },
+        "readonly":   { "const": 2,    "description": "att_readonly — cannot change (-r)" },
+        "array":      { "const": 4,    "description": "att_array — indexed array (-a)" },
+        "function":   { "const": 8,    "description": "att_function — value is a function (-f)" },
+        "integer":    { "const": 16,   "description": "att_integer — integer attribute (-i)" },
+        "local":      { "const": 32,   "description": "att_local — local to function (local/declare)" },
+        "assoc":      { "const": 64,   "description": "att_assoc — associative array (-A)" },
+        "trace":      { "const": 128,  "description": "att_trace — traced with DEBUG trap (-t)" },
+        "uppercase":  { "const": 256,  "description": "att_uppercase — convert to uppercase (-u)" },
+        "lowercase":  { "const": 512,  "description": "att_lowercase — convert to lowercase (-l)" },
+        "capcase":    { "const": 1024, "description": "att_capcase — capitalize on assignment (undocumented)" },
+        "nameref":    { "const": 2048, "description": "att_nameref — name reference (-n)" }
+      }
+    },
+
+    "DeclareOptionMap": {
+      "type": "object",
+      "description": "Mapping from declare/typeset flags to variable attributes.",
+      "properties": {
+        "-a": { "const": "array",     "description": "Indexed array" },
+        "-A": { "const": "assoc",     "description": "Associative array" },
+        "-f": { "const": "function",  "description": "Function names and definitions" },
+        "-i": { "const": "integer",   "description": "Integer attribute" },
+        "-l": { "const": "lowercase", "description": "Convert to lowercase" },
+        "-n": { "const": "nameref",   "description": "Name reference" },
+        "-r": { "const": "readonly",  "description": "Read-only" },
+        "-t": { "const": "trace",     "description": "Trace (DEBUG trap)" },
+        "-u": { "const": "uppercase", "description": "Convert to uppercase" },
+        "-x": { "const": "exported",  "description": "Export to environment" },
+        "-g": { "const": "global",    "description": "Create global variable in function (no att_ flag, special handling)" },
+        "-p": { "const": "print",     "description": "Print variable attributes (no att_ flag)" }
+      }
+    },
+
+    "InternalAttributes": {
+      "type": "object",
+      "description": "Internal bookkeeping attributes. Not user-visible, but affect behavior.",
+      "properties": {
+        "invisible":  { "const": 4096,    "description": "att_invisible — cannot see (unset but still in scope)" },
+        "nounset":    { "const": 8192,    "description": "att_nounset — cannot unset" },
+        "noassign":   { "const": 16384,   "description": "att_noassign — assignment not allowed" },
+        "imported":   { "const": 32768,   "description": "att_imported — came from environment" },
+        "special":    { "const": 65536,   "description": "att_special — requires special handling ($RANDOM, $SECONDS, etc.)" },
+        "nofree":     { "const": 131072,  "description": "att_nofree — do not free value on unset" },
+        "regenerate": { "const": 262144,  "description": "att_regenerate — regenerate exportstr when exported" },
+        "tempvar":    { "const": 1048576, "description": "att_tempvar — from temporary environment" },
+        "propagate":  { "const": 2097152, "description": "att_propagate — propagate to previous scope" }
+      }
+    },
+
+    "SpecialVariables": {
+      "type": "object",
+      "description": "Shell special variables that have dynamic values or special behavior.",
+      "properties": {
+
+        "positional": {
+          "const": ["$0", "$1", "$2", "$3", "$4", "$5", "$6", "$7", "$8", "$9"],
+          "description": "Positional parameters. $0 is the shell/script name."
+        },
+
+        "special": {
+          "type": "object",
+          "properties": {
+            "$*":  { "const": "All positional params as single word (IFS-joined)" },
+            "$@":  { "const": "All positional params as separate words" },
+            "$#":  { "const": "Number of positional parameters" },
+            "$?":  { "const": "Exit status of last foreground pipeline" },
+            "$-":  { "const": "Current option flags (set by set or invocation)" },
+            "$$":  { "const": "PID of the shell (not subshell)" },
+            "$!":  { "const": "PID of most recent background command" },
+            "$_":  { "const": "Last argument of previous command" }
+          }
+        },
+
+        "dynamic": {
+          "type": "object",
+          "description": "Variables with dynamic_value functions — computed on access.",
+          "properties": {
+            "RANDOM":      { "const": "Random integer 0-32767" },
+            "SECONDS":     { "const": "Seconds since shell start" },
+            "LINENO":      { "const": "Current line number in script" },
+            "BASHPID":     { "const": "PID of current bash process (includes subshells)" },
+            "EPOCHSECONDS":{ "const": "Unix epoch seconds" },
+            "EPOCHREALTIME":{ "const": "Unix epoch with microseconds" },
+            "BASH_COMMAND": { "const": "Command currently being executed" },
+            "BASH_SUBSHELL":{ "const": "Subshell nesting level" },
+            "HISTCMD":     { "const": "History number of current command" },
+            "COMP_WORDBREAKS": { "const": "Characters for completion word breaking" }
+          }
+        },
+
+        "autoset": {
+          "type": "object",
+          "description": "Variables automatically set by the shell.",
+          "properties": {
+            "BASH":         { "const": "Full pathname of bash" },
+            "BASH_VERSION": { "const": "Version string" },
+            "BASH_VERSINFO":{ "const": "Version info array" },
+            "HOSTNAME":     { "const": "Current hostname" },
+            "HOSTTYPE":     { "const": "Machine type (e.g. x86_64)" },
+            "MACHTYPE":     { "const": "GNU-style machine type" },
+            "OSTYPE":       { "const": "OS type string" },
+            "PPID":         { "const": "Parent process PID" },
+            "PWD":          { "const": "Current working directory" },
+            "OLDPWD":       { "const": "Previous working directory" },
+            "UID":          { "const": "User ID" },
+            "EUID":         { "const": "Effective user ID" },
+            "GROUPS":       { "const": "Array of group IDs" },
+            "SHELLOPTS":    { "const": "Colon-separated list of enabled shell options" },
+            "BASHOPTS":     { "const": "Colon-separated list of enabled shopt options" }
+          }
+        }
+      }
+    }
+  }
+}

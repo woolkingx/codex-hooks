@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>codex-hooks Policy</title>
+  <style>
+    body { font-family: system-ui, sans-serif; line-height: 1.55; margin: 2rem auto; max-width: 1120px; padding: 0 1rem; color: #1f2933; }
+    table { border-collapse: collapse; width: 100%; margin: 1rem 0; }
+    th, td { border: 1px solid #c7d0da; padding: 0.5rem; text-align: left; vertical-align: top; }
+    th { background: #eef2f6; } code, pre { background: #f3f5f7; border-radius: 4px; } code { padding: 0.1rem 0.25rem; } pre { padding: 0.75rem; overflow-x: auto; line-height: 1.4; }
+  </style>
+  <link rel="stylesheet" href="handbook.css">
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar" aria-labelledby="handbook-index">
+      <h2 id="handbook-index">Index</h2>
+      <nav aria-label="Handbook chapters">
+        <ol>
+          <li><a href="index.html">Handbook Home</a></li>
+          <li><a href="artifact-roles.html">Artifact Roles</a></li>
+          <li><a href="topology.html">System Topology</a></li>
+          <li><a href="schema-tree.html">Data Ontology</a></li>
+          <li><a href="api-schema.html">API Schema</a></li>
+          <li><a href="event-model.html">Event Model</a></li>
+          <li><a href="policy.html">Policy</a></li>
+          <li><a href="usage.html">Usage</a></li>
+          <li><a href="model-onboarding.html">Model Onboarding</a></li>
+          <li><a href="config.html">Config</a></li>
+          <li><a href="runtime-kernels.html">Runtime Kernels</a></li>
+          <li><a href="interfaces.html">Interfaces</a></li>
+          <li><a href="deployment.html">Deployment</a></li>
+          <li><a href="decision-flow.html">Decision Flow</a></li>
+          <li><a href="stage-actions.html">Stage Actions</a></li>
+          <li><a href="handbook-skills.html">Handbook Skills</a></li>
+          <li><a href="acceptance-gates.html">Acceptance Gates</a></li>
+          <li><a href="roadmap.html">Roadmap</a></li>
+        </ol>
+      </nav>
+    </aside>
+
+    <main class="content">
+  <h1>Policy</h1>
+
+  <section id="principle">
+    <h2>1. Principle</h2>
+    <pre><code>user requirement data -&gt; compiler -&gt; rule data
+input data --(rule data)--&gt; output data</code></pre>
+    <p><code>policy/user.json</code> is authoring data. <code>policy/rules/&lt;event&gt;/&lt;id&gt;.rule.json</code> is runtime rule data. Compiler reports, gaps, traces, explanations, and diagnostics are log information.</p>
+  </section>
+
+  <section id="user-json">
+    <h2>2. User Requirement Data</h2>
+    <pre><code>{
+  "version": "0.0.0",
+  "requirements": [
+    {
+      "id": "deny-rm",
+      "event": "pre-tool-use",
+      "enabled": true,
+      "requirement": "Block Codex from running rm under Bash."
+    }
+  ]
+}</code></pre>
+    <p><code>id</code>, <code>event</code>, <code>enabled</code>, and <code>requirement</code> belong here. <code>enabled</code> is user-owned authoring state; missing means <code>true</code>. No rule clause, feature config, runtime config, test, diagnostic, or compiler trace belongs in user requirement data.</p>
+  </section>
+
+  <section id="rule-binding">
+    <h2>3. Requirement to Rule Binding</h2>
+    <pre><code>requirement id = deny-rm
+requirement event = pre-tool-use
+rule file = policy/rules/pre-tool-use/deny-rm.rule.json</code></pre>
+    <p>No index file is needed. The rule id equals the requirement id. The event directory names the event. Every runtime rule must have exactly one matching user requirement, and every user requirement must have exactly one matching runtime rule. Runtime rule <code>enabled</code> is a compiled projection of user requirement <code>enabled</code>; after applying the default <code>true</code>, both values must match. If compilation fails, the compiler writes a log record and exits non-zero; it does not create a separate gap artifact by default.</p>
+  </section>
+
+  <section id="rule-data">
+    <h2>4. Rule Data</h2>
+    <p>Rule data is the persistent compiler output because runtime reads it. The canonical shape is <code>trigger</code>, <code>feature</code>, and <code>output</code>. <code>trigger</code> gives flat official input paths and expected values. <code>feature</code> gives module-owned feature data validated by <code>src/features/&lt;feature&gt;/schema.json</code>. <code>output</code> is official event output data.</p>
+    <pre><code>{
+  "id": "deny-rm",
+  "event": "pre-tool-use",
+  "priority": 50,
+  "trigger": {
+    "$.tool_name": "Bash"
+  },
+  "feature": {
+    "bash-command": {
+      "value": {
+        "path": "$.tool_input.command",
+        "name": "rm"
+      }
+    }
+  },
+  "output": {
+    "decision": "block",
+    "reason": "rm denied",
+    "hookSpecificOutput": {
+      "hookEventName": "PreToolUse",
+      "permissionDecision": "deny",
+      "permissionDecisionReason": "rm denied"
+    }
+  }
+}</code></pre>
+    <p>This is the runtime contract: trigger checks official input path values, feature modules interpret derived capability data, and output writes official output data. <code>fields[]</code>, <code>conditions[]</code>, <code>process</code>, <code>params</code>, and <code>write</code> are not runtime rule data.</p>
+  </section>
+
+  <section id="logs">
+    <h2>5. Compiler and Runtime Logs</h2>
+    <p>The following are log information: <code>compile.gap</code>, compiler report, compile trace, explain, diagnostic, and error. They belong under log data, not under policy artifacts or schema roots.</p>
+    <pre><code>{
+  "runtime": "compiler",
+  "type": "compile.gap",
+  "level": "warn",
+  "requirement_id": "semantic-secret-detection",
+  "event": "pre-tool-use",
+  "message": "Requirement cannot be compiled into current rule data."
+}</code></pre>
+  </section>
+    </main>
+  </div>
+</body>
+</html>

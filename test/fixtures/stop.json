@@ -1,0 +1,11 @@
+{
+  "cwd": "/tmp/codex-hooks",
+  "hook_event_name": "Stop",
+  "last_assistant_message": "done",
+  "model": "gpt-5.4",
+  "permission_mode": "bypassPermissions",
+  "session_id": "session-1",
+  "stop_hook_active": false,
+  "transcript_path": null,
+  "turn_id": "turn-1"
+}

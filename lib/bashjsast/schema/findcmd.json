@@ -1,0 +1,42 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "findcmd.json",
+  "title": "Bash Command Search",
+  "description": "Command search flags and path data from findcmd.h and hashcmd.h.",
+
+  "definitions": {
+
+    "CmdSearchFlags": {
+      "type": "object",
+      "description": "CMDSRCH_* flags for search_for_command().",
+      "properties": {
+        "CMDSRCH_HASH":    { "const": 1, "description": "Use hash table" },
+        "CMDSRCH_STDPATH": { "const": 2, "description": "Use standard PATH" },
+        "CMDSRCH_TEMPENV": { "const": 4, "description": "Check temporary environment" }
+      }
+    },
+
+    "PathData": {
+      "type": "object",
+      "description": "PATH_DATA — cached command path in hash table.",
+      "properties": {
+        "path":  { "type": "string", "description": "Full pathname of the file" },
+        "flags": { "type": "integer", "description": "HASH_* flags bitmask" }
+      }
+    },
+
+    "HashPathFlags": {
+      "type": "object",
+      "description": "Flags for hashed command paths.",
+      "properties": {
+        "HASH_RELPATH": { "const": 1, "description": "Filename is a relative pathname" },
+        "HASH_CHKDOT":  { "const": 2, "description": "Check . since it was earlier in $PATH" }
+      }
+    },
+
+    "FilenamHashBuckets": {
+      "const": 256,
+      "description": "FILENAME_HASH_BUCKETS — must be power of two"
+    }
+  }
+}

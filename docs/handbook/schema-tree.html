@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>codex-hooks Data Ontology</title>
+  <style>
+    body { font-family: system-ui, sans-serif; line-height: 1.55; margin: 2rem auto; max-width: 1120px; padding: 0 1rem; color: #1f2933; }
+    table { border-collapse: collapse; width: 100%; margin: 1rem 0; }
+    th, td { border: 1px solid #c7d0da; padding: 0.5rem; text-align: left; vertical-align: top; }
+    th { background: #eef2f6; } code, pre { background: #f3f5f7; border-radius: 4px; } code { padding: 0.1rem 0.25rem; } pre { padding: 0.75rem; overflow-x: auto; line-height: 1.4; }
+  </style>
+  <link rel="stylesheet" href="handbook.css">
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar" aria-labelledby="handbook-index">
+      <h2 id="handbook-index">Index</h2>
+      <nav aria-label="Handbook chapters">
+        <ol>
+          <li><a href="index.html">Handbook Home</a></li>
+          <li><a href="artifact-roles.html">Artifact Roles</a></li>
+          <li><a href="topology.html">System Topology</a></li>
+          <li><a href="schema-tree.html">Data Ontology</a></li>
+          <li><a href="api-schema.html">API Schema</a></li>
+          <li><a href="event-model.html">Event Model</a></li>
+          <li><a href="policy.html">Policy</a></li>
+          <li><a href="usage.html">Usage</a></li>
+          <li><a href="model-onboarding.html">Model Onboarding</a></li>
+          <li><a href="config.html">Config</a></li>
+          <li><a href="runtime-kernels.html">Runtime Kernels</a></li>
+          <li><a href="interfaces.html">Interfaces</a></li>
+          <li><a href="deployment.html">Deployment</a></li>
+          <li><a href="decision-flow.html">Decision Flow</a></li>
+          <li><a href="stage-actions.html">Stage Actions</a></li>
+          <li><a href="handbook-skills.html">Handbook Skills</a></li>
+          <li><a href="acceptance-gates.html">Acceptance Gates</a></li>
+          <li><a href="roadmap.html">Roadmap</a></li>
+        </ol>
+      </nav>
+    </aside>
+
+    <main class="content">
+  <h1>Data Ontology</h1>
+
+  <section id="principle">
+    <h2>1. Principle</h2>
+    <p>Schema follows data ontology. If there is no durable or wire-level data object, there is no schema root. A transient computation step, helper function, metadata shortcut, compiler explanation, or diagnostic message is not promoted to a schema because it is JSON-shaped.</p>
+    <pre><code>data first -&gt; schema second
+no data ontology -&gt; no schema root</code></pre>
+  </section>
+
+  <section id="event-data">
+    <h2>2. Event Runtime Data</h2>
+    <p>Each hook event owns exactly three runtime data objects.</p>
+    <table>
+      <thead><tr><th>data</th><th>schema</th><th>meaning</th></tr></thead>
+      <tbody>
+        <tr><td>input</td><td>official Codex input schema</td><td>The hook payload received by the event executor.</td></tr>
+        <tr><td>rule</td><td>event rule schema</td><td>The event-trigger declaration: input path values, admitted feature module data, and official output data.</td></tr>
+        <tr><td>output</td><td>official Codex output schema</td><td>The only data allowed on hook stdout.</td></tr>
+      </tbody>
+    </table>
+    <pre><code>input data --(rule data: trigger + feature + output)--&gt; output data</code></pre>
+  </section>
+
+  <section id="system-data">
+    <h2>3. System Data</h2>
+    <p>System data has schemas because it is durable runtime or control-plane data, not because it participates in an event transition.</p>
+    <table>
+      <thead><tr><th>data</th><th>schema</th><th>owner</th></tr></thead>
+      <tbody>
+        <tr><td>log</td><td><code>schema/log.schema.json</code></td><td>Runtime observation records: hook events, compiler events, diagnostics, explanations, traces, and gaps all appear as log records.</td></tr>
+        <tr><td>status</td><td><code>schema/status.schema.json</code></td><td>Runtime state snapshot derived from logs and rule inventory.</td></tr>
+        <tr><td>config</td><td><code>schema/config.schema.json</code></td><td>Control input selecting rule roots, profile, mode, and logging.</td></tr>
+        <tr><td>deploy</td><td><code>schema/deploy.schema.json</code></td><td>Control-plane install or doctor result.</td></tr>
+        <tr><td>profile</td><td><code>schema/profile.schema.json</code></td><td>Optional persistent runtime selection data.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section id="root-schema-tree">
+    <h2>4. Root Schema Tree</h2>
+    <p><code>schema/codex-hooks.schema.json</code> owns schema reachability only. It links existing data owners with <code>$ref</code>; it is not event runtime data and does not create a new data ontology.</p>
+    <pre><code>schema/codex-hooks.schema.json
+  api.&lt;event&gt;.input  -&gt; official input schema
+  api.&lt;event&gt;.output -&gt; official output schema
+  events.&lt;event&gt;.rule -&gt; event rule schema
+  features.&lt;name&gt;    -&gt; module-owned feature schema
+  system.*            -&gt; log/status/config/deploy/profile/user requirement schemas</code></pre>
+    <p>The root schema tree is the boundary map: an active schema is reachable from root, and runtime code gets the schema through <code>Loader.resolve(ref)</code>. Unreachable schemas are dead or unowned until the handbook names their data ontology.</p>
+  </section>
+
+  <section id="authoring-data">
+    <h2>5. Authoring Data</h2>
+    <p><code>policy/user.json</code> is the authoring plane that receives Codex-authored requirements derived from natural-language input. It is not meant for manual user editing and is not event runtime data. If validated by schema, that schema belongs to the authoring/compiler plane, not to the event schema tuple.</p>
+    <pre><code>policy/user.json
+  requirements[] = { id, event, enabled, requirement }
+
+compiler
+  reads requirements
+  emits rule data
+  writes compile observations to log</code></pre>
+  </section>
+
+  <section id="not-schema-roots">
+    <h2>6. Not Schema Roots</h2>
+    <table>
+      <thead><tr><th>thing</th><th>why it is not a schema root</th><th>where it belongs</th></tr></thead>
+      <tbody>
+        <tr><td>feature module</td><td>Module-owned feature data and handler admitted by the event rule schema.</td><td>Inside <code>src/features/&lt;feature&gt;/schema.json</code> and admitted by the event rule schema; no central feature registry schema root.</td></tr>
+        <tr><td>event meta</td><td>Shortcut metadata, not a fourth event data object.</td><td>Derive from event topology or keep as module-local constants.</td></tr>
+        <tr><td>gap</td><td>A compiler observation that the requirement cannot become rule data now.</td><td><code>log</code> record, e.g. <code>type = "compile.gap"</code>.</td></tr>
+        <tr><td>compiler report / trace / explain / diagnostic</td><td>Runtime observations from compiler execution.</td><td><code>log</code> records.</td></tr>
+        <tr><td>error root</td><td>Errors are observations or legal output branches, not a fourth event output.</td><td><code>log.error</code> or official event output schema when admitted.</td></tr>
+        <tr><td>binding / index</td><td>Topology rule, not data.</td><td><code>requirement.id</code> maps to rule file name directly.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section id="gate">
+    <h2>7. Gate</h2>
+    <p id="GATE-DATA-ONTOLOGY-01"><code>GATE-DATA-ONTOLOGY-01</code>: before adding any schema, name the data object, its owner, lifecycle, reader, writer, and reason it cannot be represented as event input, event rule, event output, log, status, config, deploy, profile, or user requirement data.</p>
+    <p id="GATE-SCHEMA-TREE-ROOT-01"><code>GATE-SCHEMA-TREE-ROOT-01</code>: every active schema resolves from <code>schema/codex-hooks.schema.json</code> through <code>Loader.resolve()</code>; runtime code does not compose synthetic schemas or bypass returned sub-loader scope.</p>
+  </section>
+    </main>
+  </div>
+</body>
+</html>

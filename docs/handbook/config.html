@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>codex-hooks Config</title>
+  <style>
+    body { font-family: system-ui, sans-serif; line-height: 1.55; margin: 2rem auto; max-width: 1120px; padding: 0 1rem; color: #1f2933; }
+    table { border-collapse: collapse; width: 100%; margin: 1rem 0; }
+    th, td { border: 1px solid #c7d0da; padding: 0.5rem; text-align: left; vertical-align: top; }
+    th { background: #eef2f6; } code, pre { background: #f3f5f7; border-radius: 4px; } code { padding: 0.1rem 0.25rem; } pre { padding: 0.75rem; overflow-x: auto; line-height: 1.4; }
+  </style>
+  <link rel="stylesheet" href="handbook.css">
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar" aria-labelledby="handbook-index">
+      <h2 id="handbook-index">Index</h2>
+      <nav aria-label="Handbook chapters">
+        <ol>
+          <li><a href="index.html">Handbook Home</a></li>
+          <li><a href="artifact-roles.html">Artifact Roles</a></li>
+          <li><a href="topology.html">System Topology</a></li>
+          <li><a href="schema-tree.html">Data Ontology</a></li>
+          <li><a href="api-schema.html">API Schema</a></li>
+          <li><a href="event-model.html">Event Model</a></li>
+          <li><a href="policy.html">Policy</a></li>
+          <li><a href="usage.html">Usage</a></li>
+          <li><a href="model-onboarding.html">Model Onboarding</a></li>
+          <li><a href="config.html">Config</a></li>
+          <li><a href="runtime-kernels.html">Runtime Kernels</a></li>
+          <li><a href="interfaces.html">Interfaces</a></li>
+          <li><a href="deployment.html">Deployment</a></li>
+          <li><a href="decision-flow.html">Decision Flow</a></li>
+          <li><a href="stage-actions.html">Stage Actions</a></li>
+          <li><a href="handbook-skills.html">Handbook Skills</a></li>
+          <li><a href="acceptance-gates.html">Acceptance Gates</a></li>
+          <li><a href="roadmap.html">Roadmap</a></li>
+        </ol>
+      </nav>
+    </aside>
+
+    <main class="content">
+  <h1>Config</h1>
+
+  <section id="position">
+    <h2>1. Stack Position</h2>
+    <pre><code>data plane      official input --(event rule schema)--&gt; official output
+control plane   config selects source paths and runtime mode at boot</code></pre>
+    <p>Config selects policy sources, schema mirror, profile, log path, and runtime mode. It writes nothing during a hook invocation. Compiler feedback is written to log data, not to a gap root.</p>
+  </section>
+
+  <section id="root">
+    <h2>2. Target Root Shape</h2>
+    <pre><code>config
+|- profile           "local" | "project" | "global"
+|- source
+|   |- user_policy       path to policy/user.json
+|   |- rules_root        path to runtime rule data
+|   |- profile_path      path to profile json
+|   `- api_schema_dir    path to Codex schema mirror
+|- mode
+|   |- runtime           "enforce" | "dry-run"
+|   `- fail_closed       bool
+|- default               key/value overrides for schema base values
+`- precedence            ["global","project","local"]</code></pre>
+  </section>
+
+  <section id="contract">
+    <h2>3. Node Contract</h2>
+    <table>
+      <thead><tr><th>node</th><th>purpose</th><th>example</th></tr></thead>
+      <tbody>
+        <tr><td><code>source.user_policy</code></td><td>User requirement source for authoring.</td><td><code>"policy/user.json"</code></td></tr>
+        <tr><td><code>source.rules_root</code></td><td>Runtime rule data root.</td><td><code>"policy/rules"</code></td></tr>
+        <tr><td><code>source.profile_path</code></td><td>Profile JSON selecting active runtime artifacts.</td><td><code>"policy/profiles/local.profile.json"</code></td></tr>
+        <tr><td><code>source.api_schema_dir</code></td><td>Codex schema mirror.</td><td><code>"schema/api/openai-codex/generated"</code></td></tr>
+        <tr><td><code>mode.runtime</code></td><td>Enforce real actions or run dry.</td><td><code>"enforce"</code></td></tr>
+        <tr><td><code>mode.fail_closed</code></td><td>On errors, deny/block when the event can project it.</td><td><code>true</code></td></tr>
+        <tr><td><code>default</code></td><td>Active overrides for schema base values.</td><td><code>{ "log": { "tail": 20 } }</code></td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section id="resolution">
+    <h2>4. Resolution Flow</h2>
+    <pre><code>authoring flow:
+read config
+  -&gt; resolve absolute source paths
+  -&gt; load user requirements / rule files
+  -&gt; boot event schema transitions
+
+runtime flow:
+read config
+  -&gt; resolve rules_root, profile_path, api_schema_dir, log path, mode
+  -&gt; load profile + rule files
+  -&gt; boot event handlers</code></pre>
+  </section>
+
+  <section id="defaults">
+    <h2>5. Default Rule</h2>
+    <pre><code>schema.default = base value supplied by schema2object
+config.default = active runtime override
+runtime_value  = config.default ?? schema.default ?? input</code></pre>
+    <p>Rule files are pure data and never read config directly.</p>
+  </section>
+
+  <section id="cwd-independence">
+    <h2>6. cwd Independence</h2>
+    <table>
+      <thead><tr><th>path source</th><th>resolved by</th><th>rule</th></tr></thead>
+      <tbody>
+        <tr><td>repo-owned schema</td><td>module path</td><td>Resolved from <code>import.meta.url</code>.</td></tr>
+        <tr><td><code>user_policy</code></td><td>CLI/config</td><td>Explicit absolute or relative path for authoring input.</td></tr>
+        <tr><td><code>rules_root</code></td><td>CLI/config</td><td>Explicit absolute or relative path for runtime rule data.</td></tr>
+        <tr><td><code>profile_path</code></td><td>CLI/config</td><td>Explicit absolute or relative path.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section id="sources">
+    <h2>7. Source Roles</h2>
+    <p><code>policy/user.json</code> is authoring input. <code>policy/rules/</code> is runtime rule data. Config may point both paths elsewhere, but it must not create another policy source shape.</p>
+  </section>
+    </main>
+  </div>
+</body>
+</html>

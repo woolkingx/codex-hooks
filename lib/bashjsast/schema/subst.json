@@ -1,0 +1,87 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "subst.json",
+  "title": "Bash Word Expansion & Substitution",
+  "description": "Quoting context flags, assignment flags, extraction flags, and skip-to-delim flags from subst.h.",
+
+  "definitions": {
+
+    "QuotingContextFlags": {
+      "type": "object",
+      "description": "Q_* flags for expand_word_internal() quoting context.",
+      "properties": {
+        "Q_DOUBLE_QUOTES":  { "const": 1,   "description": "Use slashify_in_quotes() for backslash" },
+        "Q_HERE_DOCUMENT":  { "const": 2,   "description": "Use slashify_in_here_document()" },
+        "Q_KEEP_BACKSLASH": { "const": 4,   "description": "Unconditionally retain backslash" },
+        "Q_PATQUOTE":       { "const": 8,   "description": "Expanding pattern in ${var%#pattern} inside double quotes" },
+        "Q_QUOTED":         { "const": 16,  "description": "Generic quoted context" },
+        "Q_ADDEDQUOTES":    { "const": 32,  "description": "Quotes were added" },
+        "Q_QUOTEDNULL":     { "const": 64,  "description": "Quoted null character" },
+        "Q_DOLBRACE":       { "const": 128, "description": "Inside ${...}; backslash also escapes { and }" },
+        "Q_ARITH":          { "const": 256, "description": "Expanding for arithmetic evaluation" },
+        "Q_ARRAYSUB":       { "const": 512, "description": "Expanding indexed array subscript" }
+      }
+    },
+
+    "AssignmentFlags": {
+      "type": "object",
+      "description": "ASS_* flags controlling assignment statement handling.",
+      "properties": {
+        "ASS_APPEND":      { "const": 1,     "description": "a+=b append" },
+        "ASS_MKLOCAL":     { "const": 2,     "description": "Make local variable" },
+        "ASS_MKASSOC":     { "const": 4,     "description": "Make associative array" },
+        "ASS_MKGLOBAL":    { "const": 8,     "description": "Force global assignment" },
+        "ASS_NAMEREF":     { "const": 16,    "description": "Assigning to nameref variable" },
+        "ASS_FORCE":       { "const": 32,    "description": "Force assignment even to readonly" },
+        "ASS_CHKLOCAL":    { "const": 64,    "description": "Check local variable before assignment" },
+        "ASS_NOEXPAND":    { "const": 128,   "description": "Don't expand associative array subscripts" },
+        "ASS_NOEVAL":      { "const": 256,   "description": "Don't evaluate value as expression" },
+        "ASS_NOLONGJMP":   { "const": 512,   "description": "Don't longjmp on fatal assignment error" },
+        "ASS_NOINVIS":     { "const": 1024,  "description": "Don't resolve local invisible variables" },
+        "ASS_ALLOWALLSUB": { "const": 2048,  "description": "Allow * and @ as associative array keys" },
+        "ASS_ONEWORD":     { "const": 4096,  "description": "Don't check array subscripts" },
+        "ASS_NOTEMPENV":   { "const": 8192,  "description": "Don't assign into temporary environment" },
+        "ASS_XTRACE":      { "const": 16384, "description": "Print trace after compound assignment expansion" }
+      }
+    },
+
+    "StringExtractionFlags": {
+      "type": "object",
+      "description": "SX_* flags for string extraction functions.",
+      "properties": {
+        "SX_NOALLOC":     { "const": 1,    "description": "Just skip; don't return substring" },
+        "SX_VARNAME":     { "const": 2,    "description": "Variable name extraction" },
+        "SX_REQMATCH":    { "const": 4,    "description": "Closing/matching delimiter required" },
+        "SX_COMMAND":     { "const": 8,    "description": "Extracting a shell script/command" },
+        "SX_NOCTLESC":    { "const": 16,   "description": "Don't honor CTLESC quoting" },
+        "SX_NOESCCTLNUL": { "const": 32,   "description": "Don't let CTLESC quote CTLNUL" },
+        "SX_NOLONGJMP":   { "const": 64,   "description": "Don't longjmp on fatal error" },
+        "SX_FUNSUB":      { "const": 128,  "description": "Extracting ${ command; } function sub" },
+        "SX_POSIXEXP":    { "const": 256,  "description": "Posix pattern removal expansions" },
+        "SX_WORD":        { "const": 512,  "description": "Extracting word in ${param op word}" },
+        "SX_COMPLETE":    { "const": 1024, "description": "Extracting word for completion" },
+        "SX_STRIPDQ":     { "const": 2048, "description": "Strip double quotes from double-quoted string" },
+        "SX_NOERROR":     { "const": 4096, "description": "Don't print parser error messages" }
+      }
+    },
+
+    "SkipToDelimFlags": {
+      "type": "object",
+      "description": "SD_* flags for skip_to_delim().",
+      "properties": {
+        "SD_NOJMP":        { "const": 1,    "description": "Don't longjmp on fatal error" },
+        "SD_INVERT":       { "const": 2,    "description": "Look for chars NOT in passed set" },
+        "SD_NOQUOTEDELIM": { "const": 4,    "description": "Don't let quotes act as delimiters" },
+        "SD_NOSKIPCMD":    { "const": 8,    "description": "Don't skip over $( <( >( substitutions" },
+        "SD_EXTGLOB":      { "const": 16,   "description": "Skip over extended globbing patterns" },
+        "SD_IGNOREQUOTE":  { "const": 32,   "description": "Quotes are not special" },
+        "SD_GLOB":         { "const": 64,   "description": "Skip over glob patterns like bracket expressions" },
+        "SD_NOPROCSUB":    { "const": 128,  "description": "Don't parse process substitutions as commands" },
+        "SD_COMPLETE":     { "const": 256,  "description": "During completion" },
+        "SD_HISTEXP":      { "const": 512,  "description": "During history expansion" },
+        "SD_ARITHEXP":     { "const": 1024, "description": "During arithmetic expansion" },
+        "SD_NOERROR":      { "const": 2048, "description": "Don't print error messages" }
+      }
+    }
+  }
+}

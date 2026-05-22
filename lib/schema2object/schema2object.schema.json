@@ -1,0 +1,289 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "schema2object.schema.json",
+  "title": "schema2object",
+  "description": "JSON Schema IS the object class. ObjectTree IS the runtime instance. Construction IS validation.",
+  "type": "object",
+  "required": ["exports"],
+  "properties": {
+    "exports": {
+      "type": "object",
+      "description": "Three exports. Each has ONE job. Do not mix.",
+      "required": ["ObjectTree", "Loader", "validate"],
+      "properties": {
+        "ObjectTree": { "$ref": "#/definitions/ObjectTree" },
+        "Loader": { "$ref": "#/definitions/Loader" },
+        "validate": { "$ref": "#/definitions/validate" }
+      },
+      "additionalProperties": false
+    }
+  },
+  "definitions": {
+    "ObjectTree": {
+      "type": "object",
+      "description": "Runtime instance — schema-bound object with validated property access. Construction = validation. Who uses it, who builds it.",
+      "required": ["constructor", "fields", "methods", "static"],
+      "properties": {
+        "static": {
+          "type": "object",
+          "description": "Static class fields — shared across all instances.",
+          "properties": {
+            "_observer": {
+              "description": "Global observer hook. fn(op, path, key, val, schema) or null. Schema context added in v0.5.2.",
+              "x-signature": "(op: 'get'|'set', path: string, key: string, val: any, schema?: object) => void | null",
+              "x-default": "null",
+              "x-behavior": {
+                "disabled": "null = zero cost, no overhead",
+                "enabled": "Called on every get/set, schema parameter provides schema node for property",
+                "cache": "Cached re-access does not re-emit"
+              },
+              "x-use-cases": [
+                "Filter by x-observable extension",
+                "Format-aware serialization (schema.format)",
+                "Type-aware logging (schema.type, schema.description)",
+                "Reactive bindings, change tracking"
+              ]
+            }
+          }
+        },
+        "constructor": {
+          "type": "object",
+          "description": "new ObjectTree(data, schema, resolver) — validates data, builds runtime, fills defaults. One step.",
+          "required": ["parameters"],
+          "properties": {
+            "parameters": {
+              "type": "array",
+              "items": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "name": { "const": "data" },
+                    "description": { "const": "Initial data. Validated against schema on construction." },
+                    "type": { "const": "any" }
+                  }
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "name": { "const": "schema" },
+                    "description": { "const": "JSON Schema Draft-07 object. Can contain $ref — resolved via resolver." },
+                    "type": { "const": "object" }
+                  }
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "name": { "const": "resolver" },
+                    "description": { "const": "How to resolve $ref. Four forms." },
+                    "oneOf": [
+                      { "type": "object", "properties": { "form": { "const": "Loader" }, "description": { "const": "Reuse existing Loader instance" } } },
+                      { "type": "object", "properties": { "form": { "const": "string" }, "description": { "const": "Schema file path — dirname becomes base dir for $ref resolution" } } },
+                      { "type": "object", "properties": { "form": { "const": "object" }, "description": { "const": "URI-to-schema map — keys are URIs, values are schema objects" } } },
+                      { "type": "object", "properties": { "form": { "const": "undefined" }, "description": { "const": "No external $ref resolution" } } }
+                    ]
+                  }
+                }
+              ]
+            },
+            "behavior": {
+              "type": "object",
+              "description": "What happens on new ObjectTree(data, schema, resolver)",
+              "properties": {
+                "step1": { "const": "Build Loader from resolver (or reuse if Loader instance)" },
+                "step2": { "const": "Resolve schema.$ref if present" },
+                "step3": { "const": "Validate data against schema (throws on invalid)" },
+                "step4": { "const": "Fill defaults for missing keys only — validate each default, throw if invalid" },
+                "step5": { "const": "Wrap in Proxy cursor — raw data stored as-is, nested access is lazy" }
+              }
+            }
+          }
+        },
+        "fields": {
+          "type": "object",
+          "description": "Internal state via Symbols. Property access intercepted by Proxy — no upfront defineProperty.",
+          "properties": {
+            "_RAW":    { "description": "Raw data — plain object from JSON.parse, not copied" },
+            "_SCHEMA": { "description": "Resolved JSON Schema object" },
+            "_LOADER": { "description": "Loader instance for $ref resolution" },
+            "_PATH":   { "description": "JSON path for error reporting (default: '$')" },
+            "_CACHE":  { "description": "Map of key → child ObjectTree (lazy, populated on first access)" }
+          }
+        },
+        "methods": {
+          "type": "object",
+          "description": "All API methods use $ prefix. Data properties don't. Zero collision.",
+          "properties": {
+            "$value": {
+              "type": "object",
+              "description": "Get/set raw data. Getter returns raw object directly. Setter validates then overwrites.",
+              "properties": {
+                "get": { "const": "Returns raw data — plain object or scalar, no unwrapping needed" },
+                "set": { "const": "Validates against schema then overwrites raw data, clears cache" }
+              }
+            },
+            "$oneOf": {
+              "description": "XOR dispatch — exactly one oneOf branch must match. Returns new ObjectTree bound to matching branch schema."
+            },
+            "$anyOf": {
+              "description": "OR dispatch — all matching anyOf branches. Returns array of ObjectTree."
+            },
+            "$allOf": {
+              "description": "AND merge — deep-merge all allOf sub-schemas. Returns new ObjectTree."
+            },
+            "$notOf": {
+              "description": "Negation check — returns boolean. true if data does NOT match 'not' schema."
+            },
+            "$ifThen": {
+              "description": "Conditional — if data matches 'if' schema, bind to 'then'; else bind to 'else'. Returns ObjectTree."
+            },
+            "$project": {
+              "description": "SELECT — keep only schema-defined properties. Returns new ObjectTree."
+            },
+            "$withDefaults": {
+              "description": "Fill missing defaults from schema. Returns new ObjectTree."
+            },
+            "$contains": {
+              "description": "Array element match — returns boolean. true if any item matches 'contains' schema."
+            },
+            "$toDict": {
+              "description": "Terminal operation — serialize to plain object. Schema-defined fields only. ONE-WAY EXIT. Do not manipulate result.",
+              "x-anti-pattern": "const d = tree.$toDict(); d.name = 'x' — loses schema binding"
+            },
+            "$schema": {
+              "description": "Getter — returns deep copy of resolved schema as plain object."
+            },
+            "$getSchema": {
+              "description": "$getSchema('address.city') — navigate to sub-schema by dot path."
+            },
+            "$getExtensions": {
+              "description": "$getExtensions() — returns all x-* extension fields from schema."
+            },
+            "toJSON": {
+              "description": "JS protocol — called by JSON.stringify(). Delegates to $toDict()."
+            },
+            "$toJSON": {
+              "description": "Returns formatted JSON string (indent 2)."
+            }
+          }
+        }
+      },
+      "x-usage": {
+        "correct": [
+          "const user = new ObjectTree(data, schema, './user.json')",
+          "user.name — property getter, schema-validated",
+          "user.name = 'Alice' — setter validates against schema",
+          "user.$oneOf().role — chain methods, stay in ObjectTree",
+          "JSON.stringify(user) — serialize at output boundary"
+        ],
+        "wrong": [
+          "const d = user.$toDict(); d.name = 'x' — detached from schema",
+          "const {name} = user — destructuring loses schema binding",
+          "validate(data); raw.name = 'x' — validated then bypassed",
+          "new ObjectTree(data, schema); // discard — construction is not free"
+        ]
+      }
+    },
+
+    "Loader": {
+      "type": "object",
+      "description": "Resolves $ref per JSON Schema Draft-07 URI semantics. One Loader per schema document root.",
+      "required": ["constructor", "methods"],
+      "properties": {
+        "constructor": {
+          "type": "object",
+          "description": "new Loader(root, resolver, documentBase)",
+          "properties": {
+            "parameters": {
+              "type": "array",
+              "items": [
+                { "type": "object", "properties": { "name": { "const": "root" }, "description": { "const": "Root schema object — $ref '#' resolves to this" } } },
+                { "type": "object", "properties": { "name": { "const": "resolver" }, "description": { "const": "string (dir) | object (uri→schema) | function (uri→schema) | null" } } },
+                { "type": "object", "properties": { "name": { "const": "documentBase" }, "description": { "const": "Base URI for relative $ref. Falls back to root.$id." } } }
+              ]
+            },
+            "behavior": {
+              "type": "object",
+              "properties": {
+                "step1": { "const": "Scan all $id in schema tree, build idMap" },
+                "step2": { "const": "Track scope (base URI) and resource (nearest $id ancestor) per node" },
+                "step3": { "const": "Cache remote schema loads" }
+              }
+            }
+          }
+        },
+        "methods": {
+          "type": "object",
+          "properties": {
+            "resolve": {
+              "description": "resolve(ref, baseUri, resourceUri) — returns {node, loader}. Handles: '#', '#/pointer', '#anchor', relative, absolute, remote."
+            },
+            "scopeOf": { "description": "Base URI for relative $ref resolution at this node." },
+            "parentScopeOf": { "description": "Base URI ignoring own $id — for sibling $id-ignore rule." },
+            "resourceOf": { "description": "Nearest $id-bearing ancestor URI — '#' resolves to this." },
+            "root": { "description": "Getter — the root schema object." },
+            "resolver": { "description": "Getter — the resolver (dir/map/fn/null)." }
+          }
+        },
+        "x-ref-resolution": {
+          "forms": {
+            "#": "Root of nearest $id-bearing resource",
+            "#/path": "JSON Pointer within nearest resource root",
+            "#anchor": "Named anchor ($id scan)",
+            "relative": "Resolved against base URI, then loaded",
+            "absolute": "Direct load via resolver"
+          },
+          "remote-loading": {
+            "string-resolver": "Directory path — URI path mapped to filesystem",
+            "object-resolver": "URI key lookup in map",
+            "function-resolver": "Called with URI, returns schema"
+          }
+        }
+      }
+    },
+
+    "validate": {
+      "type": "object",
+      "description": "Gate check — pass/fail only. Uses new ObjectTree() internally (same validation logic, no duplication). Returns {valid, error?}.",
+      "properties": {
+        "parameters": {
+          "type": "array",
+          "items": [
+            { "type": "object", "properties": { "name": { "const": "data" } } },
+            { "type": "object", "properties": { "name": { "const": "schema" } } },
+            { "type": "object", "properties": { "name": { "const": "resolver" } } }
+          ]
+        },
+        "returns": {
+          "oneOf": [
+            { "type": "object", "properties": { "valid": { "const": true } }, "required": ["valid"] },
+            { "type": "object", "properties": { "valid": { "const": false }, "error": { "type": "string" } }, "required": ["valid", "error"] }
+          ]
+        }
+      },
+      "x-usage": {
+        "correct": "Gate check at boundary — reject invalid before proceeding",
+        "wrong": "validate() then operate on raw dict — why validate if you won't use ObjectTree?"
+      }
+    },
+
+    "ThreeRoles": {
+      "description": "Three exports, three roles. Do not mix.",
+      "type": "object",
+      "properties": {
+        "ObjectTree": { "const": "Runtime instance — live with it, operate on it" },
+        "validate": { "const": "Bouncer — checks the ticket, does not enter the venue" },
+        "$toDict": { "const": "Exit door — one-way, do not re-enter" }
+      }
+    },
+
+    "CorrectFlow": {
+      "description": "Input boundary → validate. Business logic → ObjectTree. Output boundary → $toDict.",
+      "type": "object",
+      "properties": {
+        "step1_boundary": { "const": "validate(data, schema) — reject if invalid" },
+        "step2_runtime": { "const": "tree = new ObjectTree(data, schema) — property access, chain methods" },
+        "step3_output": { "const": "tree.$toDict() / JSON.stringify(tree) — serialize once, send out" }
+      }
+    }
+  }
+}

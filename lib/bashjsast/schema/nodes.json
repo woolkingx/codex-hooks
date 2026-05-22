@@ -1,0 +1,352 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "nodes.json",
+  "title": "Bash AST Node Types",
+  "description": "All 16 command node types, mapped from command.h command_type enum.",
+
+  "definitions": {
+
+    "SimpleCommand": {
+      "type": "object",
+      "description": "A simple command: words + assignments + redirects. Maps to cm_simple.",
+      "required": ["type"],
+      "properties": {
+        "type": { "const": "SimpleCommand" },
+        "name": {
+          "$ref": "word.json#/definitions/Word",
+          "description": "Command name (first non-assignment word)."
+        },
+        "args": {
+          "type": "array",
+          "items": { "$ref": "word.json#/definitions/Word" },
+          "description": "Argument words (after the command name)."
+        },
+        "assignments": {
+          "type": "array",
+          "items": { "$ref": "word.json#/definitions/Assignment" },
+          "description": "Prefix variable assignments."
+        },
+        "redirects": {
+          "type": "array",
+          "items": { "$ref": "redirect.json#/definitions/Redirect" }
+        },
+        "line": { "type": "integer" },
+        "pos": { "$ref": "word.json#/definitions/Position" }
+      },
+      "additionalProperties": false
+    },
+
+    "Pipeline": {
+      "type": "object",
+      "description": "A pipeline: cmd1 | cmd2 | cmd3. Optionally negated with !.",
+      "required": ["type", "commands"],
+      "properties": {
+        "type": { "const": "Pipeline" },
+        "commands": {
+          "type": "array",
+          "items": { "$ref": "ast.json#/definitions/Command" },
+          "minItems": 2
+        },
+        "negated": {
+          "type": "boolean",
+          "default": false,
+          "description": "True if prefixed with ! (inverts exit status)."
+        },
+        "pos": { "$ref": "word.json#/definitions/Position" }
+      },
+      "additionalProperties": false
+    },
+
+    "List": {
+      "type": "object",
+      "description": "Two commands joined by &&, ||, ;, &, or |&. Maps to cm_connection.",
+      "required": ["type", "left", "right", "op"],
+      "properties": {
+        "type": { "const": "List" },
+        "left": { "$ref": "ast.json#/definitions/Command" },
+        "right": { "$ref": "ast.json#/definitions/Command" },
+        "op": {
+          "type": "string",
+          "enum": ["&&", "||", ";", "&", "|&"]
+        },
+        "pos": { "$ref": "word.json#/definitions/Position" }
+      },
+      "additionalProperties": false
+    },
+
+    "If": {
+      "type": "object",
+      "description": "if/elif/else/fi. Maps to cm_if.",
+      "required": ["type", "test", "body"],
+      "properties": {
+        "type": { "const": "If" },
+        "test": { "$ref": "ast.json#/definitions/Command" },
+        "body": { "$ref": "ast.json#/definitions/Command" },
+        "alternate": {
+          "$ref": "ast.json#/definitions/Command",
+          "description": "else/elif clause. Elif is a nested If node."
+        },
+        "redirects": {
+          "type": "array",
+          "items": { "$ref": "redirect.json#/definitions/Redirect" }
+        },
+        "line": { "type": "integer" },
+        "pos": { "$ref": "word.json#/definitions/Position" }
+      },
+      "additionalProperties": false
+    },
+
+    "For": {
+      "type": "object",
+      "description": "for NAME [in WORDS]; do BODY; done. Maps to cm_for.",
+      "required": ["type", "name", "body"],
+      "properties": {
+        "type": { "const": "For" },
+        "name": { "$ref": "word.json#/definitions/Word" },
+        "items": {
+          "type": "array",
+          "items": { "$ref": "word.json#/definitions/Word" },
+          "description": "Iteration list. Null means implicit \"$@\"."
+        },
+        "body": { "$ref": "ast.json#/definitions/Command" },
+        "redirects": {
+          "type": "array",
+          "items": { "$ref": "redirect.json#/definitions/Redirect" }
+        },
+        "line": { "type": "integer" },
+        "pos": { "$ref": "word.json#/definitions/Position" }
+      },
+      "additionalProperties": false
+    },
+
+    "ArithFor": {
+      "type": "object",
+      "description": "C-style for: for ((init; test; step)); do BODY; done. Maps to cm_arith_for.",
+      "required": ["type", "body"],
+      "properties": {
+        "type": { "const": "ArithFor" },
+        "init": { "$ref": "word.json#/definitions/Word" },
+        "test": { "$ref": "word.json#/definitions/Word" },
+        "step": { "$ref": "word.json#/definitions/Word" },
+        "body": { "$ref": "ast.json#/definitions/Command" },
+        "redirects": {
+          "type": "array",
+          "items": { "$ref": "redirect.json#/definitions/Redirect" }
+        },
+        "line": { "type": "integer" },
+        "pos": { "$ref": "word.json#/definitions/Position" }
+      },
+      "additionalProperties": false
+    },
+
+    "While": {
+      "type": "object",
+      "description": "while TEST; do BODY; done. Maps to cm_while.",
+      "required": ["type", "test", "body"],
+      "properties": {
+        "type": { "const": "While" },
+        "test": { "$ref": "ast.json#/definitions/Command" },
+        "body": { "$ref": "ast.json#/definitions/Command" },
+        "redirects": {
+          "type": "array",
+          "items": { "$ref": "redirect.json#/definitions/Redirect" }
+        },
+        "pos": { "$ref": "word.json#/definitions/Position" }
+      },
+      "additionalProperties": false
+    },
+
+    "Until": {
+      "type": "object",
+      "description": "until TEST; do BODY; done. Maps to cm_until.",
+      "required": ["type", "test", "body"],
+      "properties": {
+        "type": { "const": "Until" },
+        "test": { "$ref": "ast.json#/definitions/Command" },
+        "body": { "$ref": "ast.json#/definitions/Command" },
+        "redirects": {
+          "type": "array",
+          "items": { "$ref": "redirect.json#/definitions/Redirect" }
+        },
+        "pos": { "$ref": "word.json#/definitions/Position" }
+      },
+      "additionalProperties": false
+    },
+
+    "Case": {
+      "type": "object",
+      "description": "case WORD in (PATTERN) COMMANDS ;; esac. Maps to cm_case.",
+      "required": ["type", "word"],
+      "properties": {
+        "type": { "const": "Case" },
+        "word": { "$ref": "word.json#/definitions/Word" },
+        "clauses": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/CaseItem" }
+        },
+        "redirects": {
+          "type": "array",
+          "items": { "$ref": "redirect.json#/definitions/Redirect" }
+        },
+        "line": { "type": "integer" },
+        "pos": { "$ref": "word.json#/definitions/Position" }
+      },
+      "additionalProperties": false
+    },
+
+    "CaseItem": {
+      "type": "object",
+      "description": "A single case clause: pattern) commands ;;",
+      "required": ["type", "patterns"],
+      "properties": {
+        "type": { "const": "CaseItem" },
+        "patterns": {
+          "type": "array",
+          "items": { "$ref": "word.json#/definitions/Word" }
+        },
+        "body": { "$ref": "ast.json#/definitions/Command" },
+        "terminator": {
+          "type": "string",
+          "enum": [";;", ";&", ";;&"],
+          "description": ";; = break, ;& = fallthrough, ;;& = test-next."
+        },
+        "pos": { "$ref": "word.json#/definitions/Position" }
+      },
+      "additionalProperties": false
+    },
+
+    "Select": {
+      "type": "object",
+      "description": "select NAME [in WORDS]; do BODY; done. Maps to cm_select.",
+      "required": ["type", "name", "body"],
+      "properties": {
+        "type": { "const": "Select" },
+        "name": { "$ref": "word.json#/definitions/Word" },
+        "items": {
+          "type": "array",
+          "items": { "$ref": "word.json#/definitions/Word" }
+        },
+        "body": { "$ref": "ast.json#/definitions/Command" },
+        "redirects": {
+          "type": "array",
+          "items": { "$ref": "redirect.json#/definitions/Redirect" }
+        },
+        "line": { "type": "integer" },
+        "pos": { "$ref": "word.json#/definitions/Position" }
+      },
+      "additionalProperties": false
+    },
+
+    "Function": {
+      "type": "object",
+      "description": "[function] NAME [()] { BODY }. Maps to cm_function_def.",
+      "required": ["type", "name", "body"],
+      "properties": {
+        "type": { "const": "Function" },
+        "name": { "$ref": "word.json#/definitions/Word" },
+        "body": { "$ref": "ast.json#/definitions/Command" },
+        "hasKeyword": {
+          "type": "boolean",
+          "default": false,
+          "description": "True if 'function' keyword was used."
+        },
+        "redirects": {
+          "type": "array",
+          "items": { "$ref": "redirect.json#/definitions/Redirect" }
+        },
+        "line": { "type": "integer" },
+        "pos": { "$ref": "word.json#/definitions/Position" }
+      },
+      "additionalProperties": false
+    },
+
+    "Group": {
+      "type": "object",
+      "description": "{ COMMANDS; }. Maps to cm_group.",
+      "required": ["type", "body"],
+      "properties": {
+        "type": { "const": "Group" },
+        "body": { "$ref": "ast.json#/definitions/Command" },
+        "redirects": {
+          "type": "array",
+          "items": { "$ref": "redirect.json#/definitions/Redirect" }
+        },
+        "pos": { "$ref": "word.json#/definitions/Position" }
+      },
+      "additionalProperties": false
+    },
+
+    "Subshell": {
+      "type": "object",
+      "description": "( COMMANDS ). Maps to cm_subshell.",
+      "required": ["type", "body"],
+      "properties": {
+        "type": { "const": "Subshell" },
+        "body": { "$ref": "ast.json#/definitions/Command" },
+        "redirects": {
+          "type": "array",
+          "items": { "$ref": "redirect.json#/definitions/Redirect" }
+        },
+        "line": { "type": "integer" },
+        "pos": { "$ref": "word.json#/definitions/Position" }
+      },
+      "additionalProperties": false
+    },
+
+    "Arithmetic": {
+      "type": "object",
+      "description": "(( EXPRESSION )). Maps to cm_arith.",
+      "required": ["type", "expression"],
+      "properties": {
+        "type": { "const": "Arithmetic" },
+        "expression": { "$ref": "word.json#/definitions/Word" },
+        "redirects": {
+          "type": "array",
+          "items": { "$ref": "redirect.json#/definitions/Redirect" }
+        },
+        "line": { "type": "integer" },
+        "pos": { "$ref": "word.json#/definitions/Position" }
+      },
+      "additionalProperties": false
+    },
+
+    "Condition": {
+      "type": "object",
+      "description": "[[ EXPRESSION ]]. Maps to cm_cond. Binary tree structure.",
+      "required": ["type", "condType"],
+      "properties": {
+        "type": { "const": "Condition" },
+        "condType": {
+          "type": "string",
+          "enum": ["and", "or", "unary", "binary", "term", "expr"]
+        },
+        "op": { "$ref": "word.json#/definitions/Word" },
+        "left": { "$ref": "#/definitions/Condition" },
+        "right": { "$ref": "#/definitions/Condition" },
+        "line": { "type": "integer" },
+        "pos": { "$ref": "word.json#/definitions/Position" }
+      },
+      "additionalProperties": false
+    },
+
+    "Coproc": {
+      "type": "object",
+      "description": "coproc [NAME] COMMAND. Maps to cm_coproc.",
+      "required": ["type", "body"],
+      "properties": {
+        "type": { "const": "Coproc" },
+        "name": {
+          "type": "string",
+          "default": "COPROC"
+        },
+        "body": { "$ref": "ast.json#/definitions/Command" },
+        "redirects": {
+          "type": "array",
+          "items": { "$ref": "redirect.json#/definitions/Redirect" }
+        },
+        "pos": { "$ref": "word.json#/definitions/Position" }
+      },
+      "additionalProperties": false
+    }
+  }
+}

@@ -1,0 +1,56 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "builtins.json",
+  "title": "Bash Builtins",
+  "description": "Builtin command structure and flags from builtins.h.",
+
+  "definitions": {
+
+    "Builtin": {
+      "type": "object",
+      "description": "Struct builtin — a single builtin command entry.",
+      "required": ["name", "flags"],
+      "properties": {
+        "name":      { "type": "string" },
+        "flags":     { "type": "integer" },
+        "shortDoc":  { "type": "string" },
+        "longDoc":   { "type": "array", "items": { "type": "string" } }
+      }
+    },
+
+    "BuiltinFlags": {
+      "type": "object",
+      "description": "Flags for struct builtin.",
+      "properties": {
+        "BUILTIN_ENABLED":    { "const": 1,   "description": "Builtin is enabled" },
+        "BUILTIN_DELETED":    { "const": 2,   "description": "Deleted with enable -d" },
+        "STATIC_BUILTIN":     { "const": 4,   "description": "Not dynamically loaded" },
+        "SPECIAL_BUILTIN":    { "const": 8,   "description": "POSIX special builtin" },
+        "ASSIGNMENT_BUILTIN": { "const": 16,  "description": "Takes assignment statements" },
+        "POSIX_BUILTIN":      { "const": 32,  "description": "Special in POSIX command search" },
+        "LOCALVAR_BUILTIN":   { "const": 64,  "description": "Creates local variables" },
+        "ARRAYREF_BUILTIN":   { "const": 128, "description": "Takes array references" }
+      }
+    },
+
+    "SpecialBuiltins": {
+      "type": "array",
+      "description": "POSIX special builtins — different error handling and variable scope rules.",
+      "items": { "type": "string" },
+      "const": [
+        "break", ":", "continue", ".", "eval", "exec", "exit",
+        "export", "readonly", "return", "set", "shift",
+        "source", "times", "trap", "unset"
+      ]
+    },
+
+    "AssignmentBuiltins": {
+      "type": "array",
+      "description": "Builtins that accept assignment statements as arguments.",
+      "items": { "type": "string" },
+      "const": [
+        "alias", "declare", "export", "local", "readonly", "typeset"
+      ]
+    }
+  }
+}

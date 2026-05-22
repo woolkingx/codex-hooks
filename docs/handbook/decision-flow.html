@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>codex-hooks Flow</title>
+  <style>
+    body { font-family: system-ui, sans-serif; line-height: 1.55; margin: 2rem auto; max-width: 1120px; padding: 0 1rem; color: #1f2933; }
+    table { border-collapse: collapse; width: 100%; margin: 1rem 0; }
+    th, td { border: 1px solid #c7d0da; padding: 0.5rem; text-align: left; vertical-align: top; }
+    th { background: #eef2f6; } code, pre { background: #f3f5f7; border-radius: 4px; } code { padding: 0.1rem 0.25rem; } pre { padding: 0.75rem; overflow-x: auto; line-height: 1.4; }
+  </style>
+  <link rel="stylesheet" href="handbook.css">
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar" aria-labelledby="handbook-index">
+      <h2 id="handbook-index">Index</h2>
+      <nav aria-label="Handbook chapters">
+        <ol>
+          <li><a href="index.html">Handbook Home</a></li>
+          <li><a href="artifact-roles.html">Artifact Roles</a></li>
+          <li><a href="topology.html">System Topology</a></li>
+          <li><a href="schema-tree.html">Data Ontology</a></li>
+          <li><a href="api-schema.html">API Schema</a></li>
+          <li><a href="event-model.html">Event Model</a></li>
+          <li><a href="policy.html">Policy</a></li>
+          <li><a href="usage.html">Usage</a></li>
+          <li><a href="model-onboarding.html">Model Onboarding</a></li>
+          <li><a href="config.html">Config</a></li>
+          <li><a href="runtime-kernels.html">Runtime Kernels</a></li>
+          <li><a href="interfaces.html">Interfaces</a></li>
+          <li><a href="deployment.html">Deployment</a></li>
+          <li><a href="decision-flow.html">Decision Flow</a></li>
+          <li><a href="stage-actions.html">Stage Actions</a></li>
+          <li><a href="handbook-skills.html">Handbook Skills</a></li>
+          <li><a href="acceptance-gates.html">Acceptance Gates</a></li>
+          <li><a href="roadmap.html">Roadmap</a></li>
+        </ol>
+      </nav>
+    </aside>
+
+    <main class="content">
+  <h1>Flow</h1>
+
+  <section id="two-paths">
+    <h2>1. Two Paths</h2>
+    <table>
+      <thead><tr><th>path</th><th>uses model</th><th>purpose</th></tr></thead>
+      <tbody>
+        <tr><td>authoring compiler</td><td>yes (skill-driven)</td><td>Turn <code>policy/user.json</code> requirements into rule data; write compiler observations to log.</td></tr>
+        <tr><td>hook runtime</td><td>no</td><td>Layer executor evaluates PCI deterministically against SDU; produces next-PDU.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section id="compiler-flow">
+    <h2>2. Authoring Compiler Flow</h2>
+    <pre><code>policy/user.json requirements[]
+  -&gt; codex-hooks compiler skill (model-driven)
+  -&gt; read event input schema, rule schema, and output schema
+  -&gt; emit one rule.json per requirement id
+  -&gt; write compile.gap / trace / explain / diagnostic as log records
+  -&gt; verify: rule validates against event rule schema</code></pre>
+    <p>The compiler is invoked outside the hot path. The skill (<code>skills/codex-hooks/</code>) declares the contract; the emitted artifact is plain JSON that can be diffed, reviewed, rolled back, and executed without a model.</p>
+  </section>
+
+  <section id="runtime-flow">
+    <h2>3. Hook Runtime Flow (Layer Executor)</h2>
+    <pre><code>raw hook input
+  -&gt; SDU                        ensureValid against channel input schema      (throw on violation)
+  -&gt; load rules                  policy/rules/&lt;event&gt;/*.rule.json
+  -&gt; for each rule by priority:
+       evaluate trigger path values
+       evaluate admitted feature modules
+       first matching rule output wins
+  -&gt; next-PDU value | null       ensureValid against channel output schema    (throw on violation)
+  -&gt; project to wire             stdout JSON or no output</code></pre>
+  </section>
+
+  <section id="example">
+    <h2>4. Example: <code>pre-tool-use</code> rm denial</h2>
+    <pre><code>SDU value:
+  { hook_event_name: "pre-tool-use",
+    tool_name: "Bash",
+    tool_input: { command: "rm -rf tmp" },
+    cwd: "/home/user/repo", session_id: "s1", ... }
+
+rule PCI:
+  trigger["$.tool_name"] = "Bash"
+  feature["bash-command"].value = {
+    path: "$.tool_input.command",
+    name: "rm"
+  }
+  output = { decision: "block",
+             reason: "rm denied",
+             hookSpecificOutput: {
+               hookEventName: "PreToolUse",
+               permissionDecision: "deny",
+               permissionDecisionReason: "rm denied" } }
+
+applyRule walk:
+  resolveInput("$.tool_name", SDU) -&gt; "Bash"
+  trigger compare -&gt; true
+  bash-command feature reads "$.tool_input.command" -&gt; "rm -rf tmp"
+  bash-command feature parses privately and matches name "rm" -&gt; true
+  return rule.output
+
+next-PDU (validated):
+  { decision: "block", reason: "rm denied",
+    hookSpecificOutput: { hookEventName: "PreToolUse",
+                          permissionDecision: "deny",
+                          permissionDecisionReason: "rm denied" } }
+
+wire: stdout JSON</code></pre>
+  </section>
+
+  <section id="errors">
+    <h2>5. Error Flow</h2>
+    <table>
+      <thead><tr><th>boundary</th><th>on violation</th></tr></thead>
+      <tbody>
+        <tr><td>input validate</td><td>throw (schema boundary) → executor catches → log + stderr + non-zero exit; fail-closed may emit an official output branch when the event output schema admits one.</td></tr>
+        <tr><td>rule load (event rule schema)</td><td>throw at load time.</td></tr>
+        <tr><td>feature handler contract failure</td><td>propagated; executor catches and records a log entry. Domain parser misses inside total feature handlers return no-match.</td></tr>
+        <tr><td>next-PDU validate</td><td>throw; reported as above.</td></tr>
+      </tbody>
+    </table>
+    <p>No silent catch anywhere. <code>fail_closed</code> selects the shape of the error next-PDU but does not change reporting. Errors are runtime log information unless the official event output schema admits an error output branch.</p>
+
+    <h3>Error path (fail-closed projection through event owner)</h3>
+    <pre><code>caught throw in runOnce()
+  -&gt; loadHandler(rawInput.hook_event_name)
+       known   -&gt; failClosedOutput(meta, error) shaped per meta.id / meta.output_actions
+                  -&gt; ensureValid(output, official next-PDU schema)
+                  -&gt; return runtime result with output when official schema admits it; error details stay log information
+       unknown -&gt; return { ..., output: null, error: toErrorPDU(...) }
+  -&gt; CLI writes stdout if output != null
+  -&gt; CLI writes stderr + non-zero exit on logged error information</code></pre>
+    <p>Unknown event has no official output owner: the runtime reports the error as log information and does not invent a custom output. The executor refuses to build output data from no event schema.</p>
+  </section>
+    </main>
+  </div>
+</body>
+</html>

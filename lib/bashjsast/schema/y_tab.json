@@ -1,0 +1,83 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "y_tab.json",
+  "title": "Bash Bison Token Values",
+  "description": "Actual numeric token values from y.tab.h (Bison-generated). Complements tokens.json with concrete values.",
+
+  "definitions": {
+
+    "BisonTokenValues": {
+      "type": "object",
+      "description": "Token kind → numeric value as defined by Bison.",
+      "properties": {
+        "YYEMPTY":              { "const": -2 },
+        "YYEOF":                { "const": 0 },
+        "YYerror":              { "const": 256 },
+        "YYUNDEF":              { "const": 257 },
+        "IF":                   { "const": 258 },
+        "THEN":                 { "const": 259 },
+        "ELSE":                 { "const": 260 },
+        "ELIF":                 { "const": 261 },
+        "FI":                   { "const": 262 },
+        "CASE":                 { "const": 263 },
+        "ESAC":                 { "const": 264 },
+        "FOR":                  { "const": 265 },
+        "SELECT":               { "const": 266 },
+        "WHILE":                { "const": 267 },
+        "UNTIL":                { "const": 268 },
+        "DO":                   { "const": 269 },
+        "DONE":                 { "const": 270 },
+        "FUNCTION":             { "const": 271 },
+        "COPROC":               { "const": 272 },
+        "COND_START":           { "const": 273 },
+        "COND_END":             { "const": 274 },
+        "COND_ERROR":           { "const": 275 },
+        "IN":                   { "const": 276 },
+        "BANG":                 { "const": 277 },
+        "TIME":                 { "const": 278 },
+        "TIMEOPT":              { "const": 279 },
+        "TIMEIGN":              { "const": 280 },
+        "WORD":                 { "const": 281 },
+        "ASSIGNMENT_WORD":      { "const": 282 },
+        "REDIR_WORD":           { "const": 283 },
+        "NUMBER":               { "const": 284 },
+        "ARITH_CMD":            { "const": 285 },
+        "ARITH_FOR_EXPRS":      { "const": 286 },
+        "COND_CMD":             { "const": 287 },
+        "AND_AND":              { "const": 288 },
+        "OR_OR":                { "const": 289 },
+        "GREATER_GREATER":      { "const": 290 },
+        "LESS_LESS":            { "const": 291 },
+        "LESS_AND":             { "const": 292 },
+        "LESS_LESS_LESS":       { "const": 293 },
+        "GREATER_AND":          { "const": 294 },
+        "SEMI_SEMI":            { "const": 295 },
+        "SEMI_AND":             { "const": 296 },
+        "SEMI_SEMI_AND":        { "const": 297 },
+        "LESS_LESS_MINUS":      { "const": 298 },
+        "AND_GREATER":          { "const": 299 },
+        "AND_GREATER_GREATER":  { "const": 300 },
+        "LESS_GREATER":         { "const": 301 },
+        "GREATER_BAR":          { "const": 302 },
+        "BAR_AND":              { "const": 303 },
+        "DOLPAREN":             { "const": 304 },
+        "DOLBRACE":             { "const": 305 },
+        "yacc_EOF":             { "const": 306 }
+      }
+    },
+
+    "YYSTYPEUnion": {
+      "type": "object",
+      "description": "YYSTYPE — semantic value union for parser stack.",
+      "properties": {
+        "word":      { "description": "WORD_DESC *" },
+        "number":    { "type": "integer" },
+        "word_list": { "description": "WORD_LIST *" },
+        "command":   { "description": "COMMAND *" },
+        "redirect":  { "description": "REDIRECT *" },
+        "element":   { "description": "ELEMENT (word or redirect)" },
+        "pattern":   { "description": "PATTERN_LIST *" }
+      }
+    }
+  }
+}

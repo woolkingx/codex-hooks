@@ -1,0 +1,220 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "quoting.json",
+  "title": "Bash Quoting and Expansion",
+  "description": "Quoting contexts and expansion types. Describes how the tokenizer handles nested quoting and what expansion markers to preserve in the AST.",
+
+  "definitions": {
+
+    "QuoteContext": {
+      "type": "string",
+      "description": "The quoting context determines which characters are special.",
+      "enum": [
+        "unquoted",
+        "single_quote",
+        "double_quote",
+        "ansi_c_quote",
+        "locale_quote",
+        "here_document",
+        "here_string"
+      ]
+    },
+
+    "QuoteRules": {
+      "type": "object",
+      "description": "What is special in each quoting context.",
+      "properties": {
+
+        "unquoted": {
+          "description": "No quoting. All metacharacters, expansions, and globs are active.",
+          "type": "object",
+          "properties": {
+            "breaks": { "const": "()<>;&| \t\n" },
+            "expands": { "const": true },
+            "globs": { "const": true },
+            "backslashEscapes": { "const": "everything" }
+          }
+        },
+
+        "single_quote": {
+          "description": "'...' — nothing is special. Literal string.",
+          "type": "object",
+          "properties": {
+            "breaks": { "const": "" },
+            "expands": { "const": false },
+            "globs": { "const": false },
+            "backslashEscapes": { "const": "nothing" },
+            "terminator": { "const": "'" }
+          }
+        },
+
+        "double_quote": {
+          "description": "\"...\" — $ ` \\ are special. Word splitting and globbing disabled.",
+          "type": "object",
+          "properties": {
+            "breaks": { "const": "" },
+            "expands": { "const": true },
+            "globs": { "const": false },
+            "backslashEscapes": { "const": "\\`$\"\n" },
+            "terminator": { "const": "\"" }
+          }
+        },
+
+        "ansi_c_quote": {
+          "description": "$'...' — C-style escape sequences. No expansion.",
+          "type": "object",
+          "properties": {
+            "escapes": {
+              "const": [
+                "\\a", "\\b", "\\e", "\\E", "\\f", "\\n", "\\r", "\\t", "\\v",
+                "\\\\", "\\'", "\\\"", "\\?",
+                "\\nnn", "\\xHH", "\\uHHHH", "\\UHHHHHHHH", "\\cx"
+              ]
+            },
+            "expands": { "const": false },
+            "terminator": { "const": "'" }
+          }
+        },
+
+        "locale_quote": {
+          "description": "$\"...\" — like double quote but subject to locale translation.",
+          "type": "object",
+          "properties": {
+            "expands": { "const": true },
+            "globs": { "const": false },
+            "backslashEscapes": { "const": "\\`$\"\n" },
+            "terminator": { "const": "\"" }
+          }
+        },
+
+        "here_document": {
+          "description": "<<DELIM...DELIM — expansion active unless delimiter is quoted.",
+          "type": "object",
+          "properties": {
+            "expands": { "const": "unless delimiter quoted" },
+            "backslashEscapes": { "const": "\\`$" },
+            "stripTabs": { "const": "only with <<-" }
+          }
+        },
+
+        "here_string": {
+          "description": "<<<word — word undergoes full expansion.",
+          "type": "object",
+          "properties": {
+            "expands": { "const": true }
+          }
+        }
+      }
+    },
+
+    "ExpansionType": {
+      "type": "string",
+      "description": "Types of expansion the parser must recognize (but not evaluate). These appear as nested structures within words.",
+      "enum": [
+        "parameter",
+        "command_substitution",
+        "arithmetic",
+        "brace",
+        "tilde",
+        "process_substitution",
+        "history"
+      ]
+    },
+
+    "ExpansionSyntax": {
+      "type": "object",
+      "description": "Syntax patterns for each expansion type. The tokenizer must match these to find boundaries.",
+      "properties": {
+
+        "parameter": {
+          "description": "Parameter/variable expansion.",
+          "type": "object",
+          "properties": {
+            "simple": {
+              "const": ["$name", "$N", "$special"],
+              "description": "Simple forms: $foo, $1, $@, $$, etc."
+            },
+            "braced": {
+              "const": "${...}",
+              "description": "Braced form. Supports operators below."
+            },
+            "operators": {
+              "const": [
+                ":-", ":=", ":+", ":?",
+                "-", "=", "+", "?",
+                "#", "##", "%", "%%",
+                "/", "//", "/#", "/%",
+                "^", "^^", ",", ",,",
+                "@"
+              ],
+              "description": "Parameter expansion operators in ${param OP word}."
+            },
+            "special": {
+              "const": ["${#param}", "${!prefix*}", "${!prefix@}", "${!name[@]}", "${!name[*]}"],
+              "description": "Special parameter expansion forms."
+            },
+            "substring": {
+              "const": "${param:offset}",
+              "description": "${param:offset:length} — substring extraction."
+            }
+          }
+        },
+
+        "command_substitution": {
+          "type": "object",
+          "properties": {
+            "modern": { "const": "$(...)", "description": "POSIX form. Nests properly." },
+            "legacy": { "const": "`...`", "description": "Bourne form. Nesting requires escaping." },
+            "funsub": { "const": "${ ...; }", "description": "Bash 5.3+ foreground command substitution (nofork)." }
+          }
+        },
+
+        "arithmetic": {
+          "type": "object",
+          "properties": {
+            "expansion": { "const": "$(( ... ))", "description": "Arithmetic expansion in word context." },
+            "command": { "const": "(( ... ))", "description": "Arithmetic evaluation as command." },
+            "legacy": { "const": "$[ ... ]", "description": "Deprecated arithmetic expansion." }
+          }
+        },
+
+        "brace": {
+          "type": "object",
+          "properties": {
+            "list": { "const": "{a,b,c}", "description": "Comma-separated alternatives." },
+            "sequence": { "const": "{1..10}", "description": "Numeric or alpha sequence." },
+            "stepSequence": { "const": "{1..10..2}", "description": "Sequence with step." }
+          }
+        },
+
+        "tilde": {
+          "type": "object",
+          "properties": {
+            "forms": {
+              "const": ["~", "~/path", "~user", "~+", "~-", "~N", "~+N", "~-N"],
+              "description": "Tilde prefix forms."
+            }
+          }
+        },
+
+        "process_substitution": {
+          "type": "object",
+          "properties": {
+            "input": { "const": "<(...)", "description": "Process substitution as input." },
+            "output": { "const": ">(...)", "description": "Process substitution as output." }
+          }
+        },
+
+        "history": {
+          "type": "object",
+          "properties": {
+            "forms": {
+              "const": ["!!", "!n", "!-n", "!string", "!?string?", "^old^new^"],
+              "description": "History expansion. Interactive only."
+            }
+          }
+        }
+      }
+    }
+  }
+}

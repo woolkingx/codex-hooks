@@ -1,0 +1,11 @@
+{
+  "agent_id": "agent-1",
+  "agent_type": "default",
+  "cwd": "/tmp/codex-hooks",
+  "hook_event_name": "SubagentStart",
+  "model": "gpt-5.4",
+  "permission_mode": "bypassPermissions",
+  "session_id": "session-1",
+  "transcript_path": null,
+  "turn_id": "turn-1"
+}

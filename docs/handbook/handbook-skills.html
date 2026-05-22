@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>codex-hooks Handbook Skills</title>
+  <style>
+    body { font-family: system-ui, sans-serif; line-height: 1.55; margin: 2rem auto; max-width: 1120px; padding: 0 1rem; color: #1f2933; }
+    table { border-collapse: collapse; width: 100%; margin: 1rem 0; }
+    th, td { border: 1px solid #c7d0da; padding: 0.5rem; text-align: left; vertical-align: top; }
+    th { background: #eef2f6; } code, pre { background: #f3f5f7; border-radius: 4px; } code { padding: 0.1rem 0.25rem; } pre { padding: 0.75rem; overflow-x: auto; line-height: 1.4; }
+  </style>
+  <link rel="stylesheet" href="handbook.css">
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar" aria-labelledby="handbook-index">
+      <h2 id="handbook-index">Index</h2>
+      <nav aria-label="Handbook chapters">
+        <ol>
+          <li><a href="index.html">Handbook Home</a></li>
+          <li><a href="artifact-roles.html">Artifact Roles</a></li>
+          <li><a href="topology.html">System Topology</a></li>
+          <li><a href="schema-tree.html">Data Ontology</a></li>
+          <li><a href="api-schema.html">API Schema</a></li>
+          <li><a href="event-model.html">Event Model</a></li>
+          <li><a href="policy.html">Policy</a></li>
+          <li><a href="usage.html">Usage</a></li>
+          <li><a href="model-onboarding.html">Model Onboarding</a></li>
+          <li><a href="config.html">Config</a></li>
+          <li><a href="runtime-kernels.html">Runtime Kernels</a></li>
+          <li><a href="interfaces.html">Interfaces</a></li>
+          <li><a href="deployment.html">Deployment</a></li>
+          <li><a href="decision-flow.html">Decision Flow</a></li>
+          <li><a href="stage-actions.html">Stage Actions</a></li>
+          <li><a href="handbook-skills.html">Handbook Skills</a></li>
+          <li><a href="acceptance-gates.html">Acceptance Gates</a></li>
+          <li><a href="roadmap.html">Roadmap</a></li>
+        </ol>
+      </nav>
+    </aside>
+
+    <main class="content">
+  <h1>Handbook Skills</h1>
+
+  <section id="principle">
+    <h2>1. Principle</h2>
+    <p>A handbook skill is a posture for reading, writing, or verifying architecture truth. It does not replace runtime skill files and does not edit runtime behavior by implication.</p>
+  </section>
+
+  <section id="postures">
+    <h2>2. Postures</h2>
+    <table>
+      <thead><tr><th>posture</th><th>job</th><th>output</th></tr></thead>
+      <tbody>
+        <tr><td>reader</td><td>Find the source-of-truth chapter and explain the model.</td><td>Owning chapter, topology node, schema owner, and gate.</td></tr>
+        <tr><td>writer</td><td>Apply principle, topology, formal mapping, worked path, anti-pattern, and gate.</td><td>Updated handbook section with one canonical owner.</td></tr>
+        <tr><td>verifier</td><td>Check links, parse, vocabulary, forbidden framing, and scope.</td><td>Evidence and remaining gaps.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section id="contract">
+    <h2>3. Input and Output Contract</h2>
+    <table>
+      <tbody>
+        <tr><th>input</th><td>User request, current handbook chapter, related schema, related plan.</td></tr>
+        <tr><th>output</th><td>Updated handbook section, updated index link, gate, verification evidence.</td></tr>
+        <tr><th>boundary</th><td>No runtime skill, schema, policy, or code edit unless the user asks for that layer.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section id="prompt-shape">
+    <h2>4. Reusable Prompt Shape</h2>
+    <pre><code>Given a codex-hooks handbook chapter, identify:
+1. principle
+2. topology nodes and owners
+3. SDU / PCI / next-PDU mapping
+4. worked requirement path
+5. anti-pattern
+6. acceptance gate
+
+If one is missing, repair only the handbook owner section.</code></pre>
+  </section>
+
+  <section id="gate">
+    <h2>5. Gate</h2>
+    <p id="GATE-HANDBOOK-SKILLS-01"><code>GATE-HANDBOOK-SKILLS-01</code>: every handbook edit must declare posture, source chapter, output section, and verification command.</p>
+  </section>
+    </main>
+  </div>
+</body>
+</html>

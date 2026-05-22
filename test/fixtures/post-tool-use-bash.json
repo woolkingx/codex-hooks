@@ -1,0 +1,17 @@
+{
+  "cwd": "/tmp/codex-hooks",
+  "hook_event_name": "PostToolUse",
+  "model": "gpt-5.4",
+  "permission_mode": "bypassPermissions",
+  "session_id": "session-1",
+  "tool_input": {
+    "command": "echo ok"
+  },
+  "tool_name": "Bash",
+  "tool_response": {
+    "output": "ok\n"
+  },
+  "tool_use_id": "tool-2",
+  "transcript_path": null,
+  "turn_id": "turn-1"
+}

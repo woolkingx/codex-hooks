@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>codex-hooks Model Onboarding</title>
+  <style>
+    body { font-family: system-ui, sans-serif; line-height: 1.55; margin: 2rem auto; max-width: 1120px; padding: 0 1rem; color: #1f2933; }
+    table { border-collapse: collapse; width: 100%; margin: 1rem 0; }
+    th, td { border: 1px solid #c7d0da; padding: 0.5rem; text-align: left; vertical-align: top; }
+    th { background: #eef2f6; } code, pre { background: #f3f5f7; border-radius: 4px; } code { padding: 0.1rem 0.25rem; } pre { padding: 0.75rem; overflow-x: auto; line-height: 1.4; }
+  </style>
+  <link rel="stylesheet" href="handbook.css">
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar" aria-labelledby="handbook-index">
+      <h2 id="handbook-index">Index</h2>
+      <nav aria-label="Handbook chapters">
+        <ol>
+          <li><a href="index.html">Handbook Home</a></li>
+          <li><a href="artifact-roles.html">Artifact Roles</a></li>
+          <li><a href="topology.html">System Topology</a></li>
+          <li><a href="schema-tree.html">Data Ontology</a></li>
+          <li><a href="api-schema.html">API Schema</a></li>
+          <li><a href="event-model.html">Event Model</a></li>
+          <li><a href="policy.html">Policy</a></li>
+          <li><a href="usage.html">Usage</a></li>
+          <li><a href="model-onboarding.html">Model Onboarding</a></li>
+          <li><a href="config.html">Config</a></li>
+          <li><a href="runtime-kernels.html">Runtime Kernels</a></li>
+          <li><a href="interfaces.html">Interfaces</a></li>
+          <li><a href="deployment.html">Deployment</a></li>
+          <li><a href="decision-flow.html">Decision Flow</a></li>
+          <li><a href="stage-actions.html">Stage Actions</a></li>
+          <li><a href="handbook-skills.html">Handbook Skills</a></li>
+          <li><a href="acceptance-gates.html">Acceptance Gates</a></li>
+          <li><a href="roadmap.html">Roadmap</a></li>
+        </ol>
+      </nav>
+    </aside>
+
+    <main class="content">
+  <h1>Model Onboarding</h1>
+
+  <section id="purpose">
+    <h2>1. Purpose</h2>
+    <p>This chapter is the fast path for a model entering the project. The goal is to route a natural-language user request to the correct owner, schema, boundary, files, and verification command without re-deriving the architecture.</p>
+    <pre><code>request -> task type -> owner chapter -> schema/data owner -> files -> verification -> report evidence</code></pre>
+  </section>
+
+  <section id="first-read">
+    <h2>2. First Read</h2>
+    <ol>
+      <li>Read <code>CLAUDE.md</code> for local execution rules and navigation.</li>
+      <li>Read <code>index.html</code> summary, system map, and chapter map.</li>
+      <li>Read <code>usage.html</code> to understand that humans state requirements and Codex operates the system.</li>
+      <li>Pick one task row from the routing table below.</li>
+      <li>Before editing, name the data owner, schema owner, boundary, and verification gate.</li>
+    </ol>
+  </section>
+
+  <section id="routing-table">
+    <h2>3. Task Routing Table</h2>
+    <table>
+      <thead><tr><th>user asks for</th><th>read</th><th>owning files</th><th>verify</th></tr></thead>
+      <tbody>
+        <tr><td>Install hooks.</td><td><code>usage.html</code>, <code>deployment.html</code>, <code>interfaces.html</code></td><td><code>src/deploy/</code>, <code>schema/deploy.schema.json</code>, <code>.codex/hooks.json</code> target</td><td><code>codex-hooks doctor</code>, <code>codex-hooks install</code> dry-run, deploy tests</td></tr>
+        <tr><td>Add or change a rule.</td><td><code>usage.html</code>, <code>policy.html</code>, <code>event-model.html</code></td><td><code>policy/user.json</code>, <code>policy/rules/&lt;event&gt;/&lt;id&gt;.rule.json</code>, event rule schema</td><td><code>policy requirements sync</code>, <code>policy explain</code>, hook fixture smoke</td></tr>
+        <tr><td>Add feature capability.</td><td><code>runtime-kernels.html</code>, <code>event-model.html</code>, <code>schema-tree.html</code></td><td><code>src/features/&lt;feature&gt;/schema.json</code>, handler, tests, event rule schema <code>$ref</code></td><td>feature tests, rule load tests, hook smoke, full verify</td></tr>
+        <tr><td>Update official Codex hook schemas.</td><td><code>api-schema.html</code>, <code>schema-tree.html</code>, <code>event-model.html</code></td><td><code>schema/api/openai-codex/generated/</code>, <code>schema/api/openai-codex/source.json</code></td><td>schema tree tests, event tests, full verify</td></tr>
+        <tr><td>Change logs or status.</td><td><code>deployment.html</code>, <code>config.html</code>, <code>schema-tree.html</code></td><td><code>src/log/</code>, <code>src/status/</code>, <code>schema/log.schema.json</code>, <code>schema/status.schema.json</code></td><td>log/status tests, CLI logs/status smoke</td></tr>
+        <tr><td>Add daemon, admin API, plugin packaging, or UI.</td><td><code>roadmap.html</code>, <code>interfaces.html</code>, <code>topology.html</code></td><td>roadmap plan first; no runtime owner until handbook names it</td><td>new acceptance gate before implementation</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section id="rules">
+    <h2>4. Non-Negotiable Rules</h2>
+    <ul>
+      <li>Do not start from service names. Start from data, schema, owner, and boundary.</li>
+      <li>Do not create schema roots for traces, reports, gaps, diagnostics, or temporary compiler output. They are log information.</li>
+      <li>Do not add rule syntax outside <code>trigger + feature + output</code>.</li>
+      <li>Do not make users hand-edit JSON as the product path. Humans state requirements; Codex operates artifacts.</li>
+      <li>Do not let hook stdout contain non-official fields.</li>
+      <li>Do not install hooks without doctor or dry-run evidence unless the user explicitly accepts the risk.</li>
+    </ul>
+  </section>
+
+  <section id="verification">
+    <h2>5. Verification Commands</h2>
+    <pre><code>npm run check:handbook
+npm run check:stale
+node src/adapters/cli.mjs policy requirements sync --file policy/user.json --rules policy/rules
+node src/adapters/cli.mjs run test/fixtures/pre-tool-use-bash-rm.json --rules policy/rules
+npm run verify</code></pre>
+    <p>Use focused commands while editing. Use <code>npm run verify</code> before claiming the system is aligned or ready.</p>
+  </section>
+
+  <section id="report-shape">
+    <h2>6. Report Shape</h2>
+    <pre><code>changed:
+- files and owners
+
+verified:
+- commands and observed pass/fail
+
+warnings:
+- deploy warnings, unsupported request branches, or roadmap-only items</code></pre>
+  </section>
+    </main>
+  </div>
+</body>
+</html>

@@ -1,0 +1,74 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "ast.json",
+  "title": "Bash AST",
+  "description": "Top-level AST schema. Script is the root node; Command is the discriminated union.",
+
+  "definitions": {
+
+    "Script": {
+      "type": "object",
+      "description": "Root node. Represents a complete bash script or input unit.",
+      "required": ["type", "commands"],
+      "properties": {
+        "type": {
+          "const": "Script"
+        },
+        "commands": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Command"
+          },
+          "description": "Top-level command list."
+        },
+        "comments": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Comment"
+          },
+          "description": "All comments found during parsing."
+        }
+      },
+      "additionalProperties": false
+    },
+
+    "Comment": {
+      "type": "object",
+      "required": ["type", "text"],
+      "properties": {
+        "type": {
+          "const": "Comment"
+        },
+        "text": {
+          "type": "string"
+        },
+        "pos": {
+          "$ref": "word.json#/definitions/Position"
+        }
+      },
+      "additionalProperties": false
+    },
+
+    "Command": {
+      "description": "Discriminated union of all command types. Use 'type' field to select.",
+      "oneOf": [
+        { "$ref": "nodes.json#/definitions/SimpleCommand" },
+        { "$ref": "nodes.json#/definitions/Pipeline" },
+        { "$ref": "nodes.json#/definitions/List" },
+        { "$ref": "nodes.json#/definitions/If" },
+        { "$ref": "nodes.json#/definitions/For" },
+        { "$ref": "nodes.json#/definitions/ArithFor" },
+        { "$ref": "nodes.json#/definitions/While" },
+        { "$ref": "nodes.json#/definitions/Until" },
+        { "$ref": "nodes.json#/definitions/Case" },
+        { "$ref": "nodes.json#/definitions/Select" },
+        { "$ref": "nodes.json#/definitions/Function" },
+        { "$ref": "nodes.json#/definitions/Group" },
+        { "$ref": "nodes.json#/definitions/Subshell" },
+        { "$ref": "nodes.json#/definitions/Arithmetic" },
+        { "$ref": "nodes.json#/definitions/Condition" },
+        { "$ref": "nodes.json#/definitions/Coproc" }
+      ]
+    }
+  }
+}

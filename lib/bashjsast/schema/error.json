@@ -1,0 +1,38 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "error.json",
+  "title": "Bash Error Reporting",
+  "description": "Error reporting functions and types from error.h.",
+
+  "definitions": {
+
+    "ErrorFunctions": {
+      "type": "object",
+      "description": "Error reporting API — severity levels from lowest to highest.",
+      "properties": {
+        "internal_debug":   { "description": "Debug message (only in DEBUG builds)" },
+        "internal_inform":  { "description": "Informational notice" },
+        "internal_warning": { "description": "Internal warning" },
+        "internal_error":   { "description": "Internal error" },
+        "report_error":     { "description": "General error reporting" },
+        "parser_error":     { "description": "Parser error with line number" },
+        "file_error":       { "description": "Error about a filename" },
+        "sys_error":        { "description": "System error (like BSD warn)" },
+        "command_error":    { "description": "Command parsing/execution error" },
+        "fatal_error":      { "description": "Unrecoverable error, exits shell" },
+        "programming_error": { "description": "Programmer error, aborts" }
+      }
+    },
+
+    "SpecificErrors": {
+      "type": "object",
+      "description": "Specific error helper functions.",
+      "properties": {
+        "err_badarraysub": { "description": "Bad array subscript" },
+        "err_unboundvar":  { "description": "Unbound variable (set -u)" },
+        "err_readonly":    { "description": "Readonly variable" },
+        "err_invalidid":   { "description": "Invalid identifier" }
+      }
+    }
+  }
+}

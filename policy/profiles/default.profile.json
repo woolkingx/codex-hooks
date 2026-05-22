@@ -1,0 +1,8 @@
+{
+  "version": "0.0.0",
+  "id": "default",
+  "rules": [
+    "*/*.rule.json"
+  ],
+  "defaults": {}
+}

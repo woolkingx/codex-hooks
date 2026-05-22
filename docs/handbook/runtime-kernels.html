@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>codex-hooks Runtime Kernels</title>
+  <style>
+    body { font-family: system-ui, sans-serif; line-height: 1.5; margin: 2rem auto; max-width: 1120px; padding: 0 1rem; color: #1f2933; }
+    table { border-collapse: collapse; width: 100%; margin: 1rem 0; }
+    th, td { border: 1px solid #c7d0da; padding: 0.5rem; text-align: left; vertical-align: top; }
+    th { background: #eef2f6; } code, pre { background: #f3f5f7; border-radius: 4px; } code { padding: 0.1rem 0.25rem; } pre { padding: 0.75rem; overflow-x: auto; }
+  </style>
+  <link rel="stylesheet" href="handbook.css">
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar" aria-labelledby="handbook-index">
+      <h2 id="handbook-index">Index</h2>
+      <nav aria-label="Handbook chapters">
+        <ol>
+          <li><a href="index.html">Handbook Home</a></li>
+          <li><a href="artifact-roles.html">Artifact Roles</a></li>
+          <li><a href="topology.html">System Topology</a></li>
+          <li><a href="schema-tree.html">Data Ontology</a></li>
+          <li><a href="api-schema.html">API Schema</a></li>
+          <li><a href="event-model.html">Event Model</a></li>
+          <li><a href="policy.html">Policy</a></li>
+          <li><a href="usage.html">Usage</a></li>
+          <li><a href="model-onboarding.html">Model Onboarding</a></li>
+          <li><a href="config.html">Config</a></li>
+          <li><a href="runtime-kernels.html">Runtime Kernels</a></li>
+          <li><a href="interfaces.html">Interfaces</a></li>
+          <li><a href="deployment.html">Deployment</a></li>
+          <li><a href="decision-flow.html">Decision Flow</a></li>
+          <li><a href="stage-actions.html">Stage Actions</a></li>
+          <li><a href="handbook-skills.html">Handbook Skills</a></li>
+          <li><a href="acceptance-gates.html">Acceptance Gates</a></li>
+          <li><a href="roadmap.html">Roadmap</a></li>
+        </ol>
+      </nav>
+    </aside>
+
+    <main class="content">
+  <h1>Runtime Kernels</h1>
+
+  <section id="role">
+    <h2>Kernel Role</h2>
+    <p>Kernels turn schema-owned data into legal runtime objects. They are not business logic owners.</p>
+    <pre><code>schema-owned data
+  -&gt; schema2object object/fn
+  -&gt; feature handler
+  -&gt; next schema-owned data</code></pre>
+  </section>
+
+  <section id="vendored">
+    <h2>Vendored Libraries</h2>
+    <table>
+      <thead>
+        <tr><th>library</th><th>path</th><th>source</th><th>role</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>schema2object</code></td><td><code>lib/schema2object/</code></td><td><code>schema2object js source</code> at <code>b7e1d6a</code></td><td>Schema data to object/fn materialization, validation, default value construction, dot-path access.</td></tr>
+        <tr><td><code>bashjsast</code></td><td><code>lib/bashjsast/</code></td><td><code>bashjsast source</code> at <code>7e06b4c</code></td><td>Bash AST parser used privately by feature handlers; never exposed as event data.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section id="rules">
+    <h2>Use Rules</h2>
+    <pre><code>schema2object = root Loader + resolve(ref) + ObjectTree binding
+bashjsast     = Bash AST parser (feature-handler private)
+AJV           = not used
+ad hoc JSON path code = avoid when schema2object can own the path</code></pre>
+    <p>The runtime creates one root <code>Loader</code> from <code>schema/codex-hooks.schema.json</code>. Schema access goes through <code>resolve(ref)</code>; callers must preserve the returned sub-loader and bind data with <code>ObjectTree(data, node, subLoader)</code> or validate with that sub-loader. Runtime code must not compose synthetic schemas or bypass the root tree by reading schema files directly.</p>
+    <p>Layer executors should not hand-roll field extraction when schema2object can materialize a schema-bound object. Bash parsing is feature-handler internal: rule data may configure a module-owned feature, but bashjsast does not become a data field or schema root. Bash command features are total functions: parser failure means the feature does not match; schema, rule-load, and output-boundary failures remain throws.</p>
+  </section>
+
+  <section id="boundaries">
+    <h2>Boundary Rules</h2>
+    <table>
+      <thead><tr><th>kernel</th><th>owns</th><th>does not own</th></tr></thead>
+      <tbody>
+        <tr><td><code>schema2object</code></td><td>Root schema graph resolution, validation, defaults, object access, and field functions from schema.</td><td>Policy decisions, event projection, feature semantics.</td></tr>
+        <tr><td><code>bashjsast</code></td><td>Bash command syntax and command record derivation.</td><td>Whether a command is allowed or denied.</td></tr>
+      </tbody>
+    </table>
+  </section>
+    </main>
+  </div>
+</body>
+</html>

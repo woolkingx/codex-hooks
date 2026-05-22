@@ -1,0 +1,47 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "codex-hooks.config",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "profile": { "type": "string", "default": "local" },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "rules_root": { "type": "string", "default": "policy/rules" },
+        "profile_path": { "type": "string", "default": "policy/profiles/local.profile.json" },
+        "api_schema_dir": { "type": "string", "default": "schema/api/openai-codex/generated" }
+      }
+    },
+    "mode": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "runtime": { "enum": ["enforce", "dry-run"], "default": "enforce" },
+        "fail_closed": { "type": "boolean", "default": true }
+      }
+    },
+    "log": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "path": { "type": "string" },
+        "redaction": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "default": {
+      "type": "object",
+      "additionalProperties": true,
+      "default": {}
+    },
+    "precedence": {
+      "type": "array",
+      "items": { "enum": ["global", "project", "local"] },
+      "default": ["global", "project", "local"]
+    }
+  }
+}

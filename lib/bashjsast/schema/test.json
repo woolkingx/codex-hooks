@@ -1,0 +1,74 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "test.json",
+  "title": "Bash Test/Conditional Operators",
+  "description": "Test command operators from test.h, and [[ ]] conditional operators.",
+
+  "definitions": {
+
+    "TestFlags": {
+      "type": "object",
+      "description": "Flags for binary_test().",
+      "properties": {
+        "TEST_PATMATCH": { "const": 1, "description": "Pattern matching (==, != in [[ ]])" },
+        "TEST_ARITHEXP": { "const": 2, "description": "Arithmetic expression" },
+        "TEST_LOCALE":   { "const": 4, "description": "Locale-aware comparison" },
+        "TEST_ARRAYEXP": { "const": 8, "description": "Array subscript expansion" }
+      }
+    },
+
+    "UnaryFileOps": {
+      "type": "array",
+      "description": "Unary file test operators for test/[ and [[ ]].",
+      "items": { "type": "string" },
+      "const": [
+        "-a", "-b", "-c", "-d", "-e", "-f", "-g", "-h", "-k",
+        "-p", "-r", "-s", "-t", "-u", "-w", "-x",
+        "-G", "-L", "-N", "-O", "-S"
+      ]
+    },
+
+    "UnaryStringOps": {
+      "type": "array",
+      "description": "Unary string test operators.",
+      "items": { "type": "string" },
+      "const": ["-n", "-z", "-o", "-v", "-R"]
+    },
+
+    "BinaryStringOps": {
+      "type": "array",
+      "description": "Binary string comparison operators.",
+      "items": { "type": "string" },
+      "const": ["=", "==", "!=", "<", ">", "=~"]
+    },
+
+    "BinaryArithOps": {
+      "type": "array",
+      "description": "Binary arithmetic comparison operators.",
+      "items": { "type": "string" },
+      "const": ["-eq", "-ne", "-lt", "-le", "-gt", "-ge"]
+    },
+
+    "BinaryFileOps": {
+      "type": "array",
+      "description": "Binary file comparison operators.",
+      "items": { "type": "string" },
+      "const": ["-nt", "-ot", "-ef"]
+    },
+
+    "LogicalOps": {
+      "type": "object",
+      "description": "Logical operators in test/[ and [[ ]].",
+      "properties": {
+        "testBracket": {
+          "const": ["!", "-a", "-o", "(", ")"],
+          "description": "Operators in test/[ ]. -a = AND, -o = OR."
+        },
+        "doubleBracket": {
+          "const": ["!", "&&", "||", "(", ")"],
+          "description": "Operators in [[ ]]. C-style logical ops."
+        }
+      }
+    }
+  }
+}

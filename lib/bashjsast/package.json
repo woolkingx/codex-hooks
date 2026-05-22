@@ -1,0 +1,22 @@
+{
+  "name": "bashjsast",
+  "version": "0.2.0",
+  "description": "Bash AST parser for JavaScript — zero dependencies, complete syntax coverage",
+  "type": "module",
+  "main": "src/index.mjs",
+  "exports": {
+    ".": "./src/index.mjs",
+    "./compat": "./src/compat.mjs"
+  },
+  "scripts": {
+    "test": "node --test test/test-*.mjs test/compat-bashlex.mjs"
+  },
+  "keywords": ["bash", "parser", "ast", "shell", "lexer", "tokenizer"],
+  "license": "MIT",
+  "files": [
+    "src/",
+    "schema/",
+    "README.md",
+    "LICENSE"
+  ]
+}

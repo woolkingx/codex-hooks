@@ -1,0 +1,90 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "codex-hooks.status",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "run_id": { "type": "string", "default": "" },
+    "health": { "enum": ["ok", "error"], "default": "ok" },
+    "source_log": { "type": ["string", "null"], "default": null },
+    "total_runs": { "type": "integer", "minimum": 0, "default": 0 },
+    "error_runs": { "type": "integer", "minimum": 0, "default": 0 },
+    "rule_counts": {
+      "type": "object",
+      "additionalProperties": { "type": "integer", "minimum": 0 },
+      "default": {}
+    },
+    "repeat_state": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "sessions": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "last_fired_at": { "type": "integer", "minimum": 0 }
+              },
+              "required": ["last_fired_at"]
+            }
+          },
+          "default": {}
+        }
+      },
+      "required": ["sessions"],
+      "default": { "sessions": {} }
+    },
+    "last_event": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "properties": {
+        "trace_id":      { "type": "string" },
+        "event_name":    { "type": "string" },
+        "fired_rule_id": { "type": ["string", "null"], "default": null },
+        "created_at":    { "type": "string" },
+        "duration_ms":   { "type": "number", "minimum": 0 }
+      },
+      "required": ["trace_id", "event_name", "fired_rule_id", "created_at", "duration_ms"],
+      "default": null
+    },
+    "recent": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/recent_run" },
+      "default": []
+    },
+    "trace": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/recent_run" },
+      "default": []
+    }
+  },
+  "required": [
+    "run_id",
+    "health",
+    "source_log",
+    "total_runs",
+    "error_runs",
+    "rule_counts",
+    "repeat_state",
+    "last_event",
+    "recent",
+    "trace"
+  ],
+  "definitions": {
+    "recent_run": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "trace_id":      { "type": "string" },
+        "event_name":    { "type": "string" },
+        "fired_rule_id": { "type": ["string", "null"], "default": null },
+        "duration_ms":   { "type": "number", "minimum": 0 },
+        "created_at":    { "type": "string" }
+      },
+      "required": ["trace_id", "event_name", "fired_rule_id", "duration_ms", "created_at"]
+    }
+  }
+}

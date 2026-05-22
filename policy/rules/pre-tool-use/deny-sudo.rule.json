@@ -1,0 +1,25 @@
+{
+  "id": "deny-sudo",
+  "event": "pre-tool-use",
+  "priority": 90,
+  "trigger": {
+    "$.tool_name": "Bash"
+  },
+  "feature": {
+    "bash-command": {
+      "value": {
+        "path": "$.tool_input.command",
+        "name": "sudo"
+      }
+    }
+  },
+  "output": {
+    "decision": "block",
+    "reason": "sudo requires user assistance. Ask the user to run the command manually.",
+    "hookSpecificOutput": {
+      "hookEventName": "PreToolUse",
+      "permissionDecision": "deny",
+      "permissionDecisionReason": "sudo requires user assistance. Ask the user to run the command manually."
+    }
+  }
+}

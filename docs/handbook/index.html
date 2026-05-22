@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>codex-hooks Handbook</title>
+  <style>
+    body { font-family: system-ui, sans-serif; line-height: 1.55; margin: 2rem auto; max-width: 1320px; padding: 0 1rem; color: #1f2933; }
+    table { border-collapse: collapse; width: 100%; margin: 1rem 0; }
+    th, td { border: 1px solid #c7d0da; padding: 0.5rem; text-align: left; vertical-align: top; }
+    th { background: #eef2f6; } code, pre { background: #f3f5f7; border-radius: 4px; } code { padding: 0.1rem 0.25rem; } pre { padding: 0.75rem; overflow-x: auto; line-height: 1.4; }
+    .layout { display: grid; grid-template-columns: minmax(220px, 280px) minmax(0, 1fr); gap: 2rem; align-items: start; }
+    .sidebar { position: sticky; top: 1rem; border-right: 1px solid #d8e0e8; padding-right: 1rem; max-height: calc(100vh - 2rem); overflow: auto; }
+    .sidebar h2 { font-size: 1rem; margin-top: 0; }
+    .sidebar ol { list-style: none; margin: 0; padding-left: 0; }
+    .sidebar li { margin: 0.35rem 0; }
+    .content { min-width: 0; }
+    .map { background: #f8fafc; color: #1f2933; border: 1px solid #c7d0da; }
+    .map .schema { color: #8a4b00; font-weight: 700; } .map .policy { color: #075985; font-weight: 700; } .map .runtime { color: #166534; font-weight: 700; } .map .control { color: #9d174d; font-weight: 700; }
+    @media (max-width: 900px) {
+      body { margin-top: 1rem; }
+      .layout { grid-template-columns: 1fr; gap: 1rem; }
+      .sidebar { position: static; border-right: 0; border-bottom: 1px solid #d8e0e8; padding: 0 0 1rem; max-height: none; }
+    }
+  </style>
+  <link rel="stylesheet" href="handbook.css">
+</head>
+<body>
+  <h1>codex-hooks Handbook</h1>
+
+  <div class="layout">
+    <aside class="sidebar" aria-labelledby="handbook-index">
+      <h2 id="handbook-index">Index</h2>
+      <nav aria-label="Handbook chapters">
+        <ol>
+          <li><a href="index.html">Handbook Home</a></li>
+          <li><a href="artifact-roles.html">Artifact Roles</a></li>
+          <li><a href="topology.html">System Topology</a></li>
+          <li><a href="schema-tree.html">Data Ontology</a></li>
+          <li><a href="api-schema.html">API Schema</a></li>
+          <li><a href="event-model.html">Event Model</a></li>
+          <li><a href="policy.html">Policy</a></li>
+          <li><a href="usage.html">Usage</a></li>
+          <li><a href="model-onboarding.html">Model Onboarding</a></li>
+          <li><a href="config.html">Config</a></li>
+          <li><a href="runtime-kernels.html">Runtime Kernels</a></li>
+          <li><a href="interfaces.html">Interfaces</a></li>
+          <li><a href="deployment.html">Deployment</a></li>
+          <li><a href="decision-flow.html">Decision Flow</a></li>
+          <li><a href="stage-actions.html">Stage Actions</a></li>
+          <li><a href="handbook-skills.html">Handbook Skills</a></li>
+          <li><a href="acceptance-gates.html">Acceptance Gates</a></li>
+          <li><a href="roadmap.html">Roadmap</a></li>
+        </ol>
+      </nav>
+    </aside>
+
+    <main class="content">
+
+  <section id="summary">
+    <h2>Summary</h2>
+    <p><strong>codex-hooks</strong> is moving toward a hook rule compiler plus a deterministic schema-transition runtime. It exists to turn Codex permission-management hell, missing plugin-like capabilities, and temporary development scripts into a user-to-Codex development foundation with schema, owner, and test boundaries. Humans express desired safety, workflow, or feature behavior in natural language; Codex turns that request into <code>policy/user.json</code> requirements, matching rule files, feature modules, verification evidence, and install actions. The hook runtime executes rule data without model calls.</p>
+    <p>The core event formula is <code>input schema --(rule schema)--&gt; output schema</code>. Rule schema is the event-trigger contract: official input path values trigger module-owned features and produce official output data.</p>
+    <p>Current implementation uses the canonical data-ontology runtime: event input, event rule, event output, plus system log/status/config/deploy data. Rule data is trigger + feature + output only.</p>
+  </section>
+
+  <section id="reader-contract">
+    <h2>Reader Contract</h2>
+    <p>The handbook is written for three readers at once: a user who needs the product shape, a maintainer who needs the formal contract, and an agent who needs executable boundaries.</p>
+    <table>
+      <thead><tr><th>reader</th><th>read for</th><th>stop when</th></tr></thead>
+      <tbody>
+        <tr><td>user</td><td>Natural-language requirement, hook behavior, and safe deployment shape.</td><td>The request to Codex and runtime effect are clear.</td></tr>
+        <tr><td>maintainer</td><td>Owner, schema, topology, and verification gate.</td><td>The implementation boundary is clear.</td></tr>
+        <tr><td>agent</td><td>Stage, artifact owner, anti-pattern, and gate.</td><td>The next action is constrained.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section id="chapter-contract">
+    <h2>Chapter Contract</h2>
+    <ol>
+      <li>Principle: the smallest architecture claim the chapter depends on.</li>
+      <li>Topology: nodes, owners, legal edges, and forbidden crossings.</li>
+      <li>Formal mapping: SDU, PCI, next-PDU, executor, adapter, or control-plane role.</li>
+      <li>Worked path: one concrete requirement or hook payload through the owned boundary.</li>
+      <li>Anti-pattern: the wrong framing this chapter rejects.</li>
+      <li>Gate: the acceptance rule an agent must prove before closing work.</li>
+    </ol>
+  </section>
+
+  <section id="map">
+    <h2>System Map at a Glance</h2>
+    <pre class="map"><code><span class="policy">policy/user.json</span>                         target user requirement source: [{ id, event, enabled, requirement }]
+<span class="policy">policy/rules/&lt;event&gt;/*.rule.json</span>          executable rule data, one rule per file
+<span class="schema">schema/codex-hooks.schema.json</span>             root schema graph manifest, reachability only
+<span class="schema">schema/api/openai-codex/generated/</span>        official upstream input/output schema mirror
+<span class="schema">schema/</span>                                   system data schemas: log/status/config/deploy/profile
+
+<span class="runtime">src/events/&lt;event&gt;/</span>                       schema transition boundary
+   input schema                                 official input pair for this event
+   rule schema                                  trigger + feature + output data contract
+   output schema                                official output pair for this event
+   &lt;event&gt;.mjs                                  executor only: input data -&gt; rule data -&gt; output data
+
+<span class="runtime">lib/schema2object/</span>                         schema data -&gt; object/fn materialization kernel
+<span class="runtime">src/features/&lt;feature&gt;/</span>                   module-owned feature schema + handler
+
+<span class="control">src/{deploy,status,log}/</span>                   control plane and observability
+<span class="control">src/adapters/cli.mjs</span>                      transport only</code></pre>
+    <p>The canonical map: authoring requirement data + event input/rule/output data + runtime log/status data + control config/deploy/profile data. Files that do not match this ontology are outside the active system and must be removed before release.</p>
+  </section>
+
+  <section id="chapter-map">
+    <h2>Chapter Map</h2>
+    <table>
+      <thead><tr><th>chapter</th><th>scope</th><th>use when</th></tr></thead>
+      <tbody>
+        <tr><td><a href="artifact-roles.html">Artifact Roles</a></td><td>cross-cutting</td><td>Deciding which artifact owns a claim or where a new claim belongs.</td></tr>
+        <tr><td><a href="topology.html">System Topology</a></td><td>cross-cutting</td><td>Placing a new schema field, rule artifact, feature module, or event boundary.</td></tr>
+        <tr><td><a href="schema-tree.html">Data Ontology</a></td><td>cross-cutting</td><td>Deciding whether a thing is data and deserves a schema.</td></tr>
+        <tr><td><a href="api-schema.html">API Schema</a></td><td>shared mirror</td><td>Upgrading the upstream Codex schema set.</td></tr>
+        <tr><td><a href="event-model.html">Event Model</a></td><td>per-event</td><td>Changing an event transition boundary.</td></tr>
+        <tr><td><a href="policy.html">Policy</a></td><td>authoring + runtime</td><td>Changing user requirement source, rule files, rule schemas, or compiler/runtime log information.</td></tr>
+        <tr><td><a href="usage.html">Usage</a></td><td>operator path</td><td>Telling Codex to install hooks, add or change rules, verify behavior, and report evidence.</td></tr>
+        <tr><td><a href="model-onboarding.html">Model Onboarding</a></td><td>agent fast path</td><td>Routing a model from a natural-language request to the right owner, schema, files, and verification command.</td></tr>
+        <tr><td><a href="runtime-kernels.html">Runtime Kernels</a></td><td>kernel</td><td>Changing schema materialization, feature handlers, or private parser use.</td></tr>
+        <tr><td><a href="config.html">Config</a></td><td>control plane</td><td>Changing active sources or runtime mode.</td></tr>
+        <tr><td><a href="interfaces.html">Interfaces</a></td><td>adapter</td><td>Adding or changing a runtime entrypoint.</td></tr>
+        <tr><td><a href="deployment.html">Deployment</a></td><td>control plane</td><td>Changing install or validation.</td></tr>
+        <tr><td><a href="decision-flow.html">Decision Flow</a></td><td>cross-cutting</td><td>Following one requirement or one hook end to end.</td></tr>
+        <tr><td><a href="stage-actions.html">Stage Actions</a></td><td>cross-cutting</td><td>Turning a user requirement into staged, verifiable actions.</td></tr>
+        <tr><td><a href="handbook-skills.html">Handbook Skills</a></td><td>documentation</td><td>Reading, writing, or verifying handbook truth without changing runtime behavior.</td></tr>
+        <tr><td><a href="acceptance-gates.html">Acceptance Gates</a></td><td>verification</td><td>Verifying any change.</td></tr>
+        <tr><td><a href="roadmap.html">Roadmap</a></td><td>cross-cutting</td><td>Checking current vs. target architecture.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section id="sources">
+    <h2>Sources</h2>
+    <ul>
+      <li><a href="https://developers.openai.com/codex/hooks">Codex Hooks documentation</a></li>
+      <li><a href="https://developers.openai.com/codex/config-advanced">Codex Advanced Configuration</a></li>
+      <li><a href="https://github.com/openai/codex/tree/main/codex-rs/hooks/schema/generated">OpenAI Codex generated hook schemas</a></li>
+    </ul>
+  </section>
+    </main>
+  </div>
+</body>
+</html>

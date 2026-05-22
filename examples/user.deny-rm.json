@@ -1,0 +1,10 @@
+{
+  "version": "0.0.0",
+  "requirements": [
+    {
+      "id": "deny-rm",
+      "event": "pre-tool-use",
+      "requirement": "Block Codex from running rm under Bash."
+    }
+  ]
+}

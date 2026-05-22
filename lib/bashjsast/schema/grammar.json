@@ -1,0 +1,240 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "grammar.json",
+  "title": "Bash Grammar Rules",
+  "description": "Production rules extracted from parse.y. Reference only — not a runtime schema.",
+
+  "tokens": {
+    "reserved": [
+      "if", "then", "else", "elif", "fi",
+      "case", "esac", "in",
+      "for", "select", "while", "until", "do", "done",
+      "function", "coproc",
+      "time", "!",
+      "[[", "]]", "((", "))"
+    ],
+    "operators": [
+      "|", "&", ";", "\\n",
+      "&&", "||", "|&",
+      ";;", ";&", ";;&",
+      "(", ")", "{", "}"
+    ],
+    "redirections": [
+      ">", "<", ">>", "<<", "<<<", "<<-",
+      "<&", ">&", "<>", ">|",
+      "&>", "&>>"
+    ],
+    "words": [
+      "WORD",
+      "ASSIGNMENT_WORD",
+      "NUMBER",
+      "REDIR_WORD"
+    ]
+  },
+
+  "productions": {
+
+    "inputunit": [
+      ["simple_list", "simple_list_terminator"],
+      ["newline"],
+      ["EOF"]
+    ],
+
+    "simple_list": [
+      ["simple_list1"],
+      ["simple_list1", "& | ;"]
+    ],
+
+    "simple_list1": [
+      ["pipeline_command"],
+      ["simple_list1", "&& | ||", "newline_list", "pipeline_command"],
+      ["simple_list1", "& | ;", "pipeline_command"]
+    ],
+
+    "pipeline_command": [
+      ["pipeline"],
+      ["BANG", "pipeline_command"],
+      ["timespec", "pipeline_command"],
+      ["BANG", "timespec", "pipeline_command"],
+      ["timespec", "BANG", "pipeline_command"]
+    ],
+
+    "pipeline": [
+      ["command"],
+      ["pipeline", "|", "newline_list", "command"],
+      ["pipeline", "|&", "newline_list", "command"]
+    ],
+
+    "command": [
+      ["simple_command"],
+      ["shell_command"],
+      ["shell_command", "redirection_list"],
+      ["function_def"],
+      ["coproc"]
+    ],
+
+    "simple_command": [
+      ["simple_command_element"],
+      ["simple_command", "simple_command_element"]
+    ],
+
+    "simple_command_element": [
+      ["WORD"],
+      ["ASSIGNMENT_WORD"],
+      ["redirection"]
+    ],
+
+    "shell_command": [
+      ["for_command"],
+      ["case_command"],
+      ["WHILE", "compound_list", "DO", "compound_list", "DONE"],
+      ["UNTIL", "compound_list", "DO", "compound_list", "DONE"],
+      ["select_command"],
+      ["if_command"],
+      ["subshell"],
+      ["group_command"],
+      ["arith_command"],
+      ["cond_command"],
+      ["arith_for_command"]
+    ],
+
+    "for_command": [
+      ["FOR", "WORD", "newline_list", "DO", "compound_list", "DONE"],
+      ["FOR", "WORD", ";", "newline_list", "DO", "compound_list", "DONE"],
+      ["FOR", "WORD", "newline_list", "IN", "word_list", "list_terminator", "newline_list", "DO", "compound_list", "DONE"],
+      ["FOR", "WORD", "newline_list", "IN", "list_terminator", "newline_list", "DO", "compound_list", "DONE"]
+    ],
+
+    "arith_for_command": [
+      ["FOR", "ARITH_FOR_EXPRS", "list_terminator", "newline_list", "DO", "compound_list", "DONE"],
+      ["FOR", "ARITH_FOR_EXPRS", "DO", "compound_list", "DONE"]
+    ],
+
+    "select_command": [
+      ["SELECT", "WORD", "newline_list", "DO", "compound_list", "DONE"],
+      ["SELECT", "WORD", ";", "newline_list", "DO", "compound_list", "DONE"],
+      ["SELECT", "WORD", "newline_list", "IN", "word_list", "list_terminator", "newline_list", "DO", "compound_list", "DONE"],
+      ["SELECT", "WORD", "newline_list", "IN", "list_terminator", "newline_list", "DO", "compound_list", "DONE"]
+    ],
+
+    "case_command": [
+      ["CASE", "WORD", "newline_list", "IN", "newline_list", "ESAC"],
+      ["CASE", "WORD", "newline_list", "IN", "case_clause_sequence", "newline_list", "ESAC"],
+      ["CASE", "WORD", "newline_list", "IN", "case_clause", "ESAC"]
+    ],
+
+    "case_clause": [
+      ["pattern_list"],
+      ["case_clause_sequence", "pattern_list"]
+    ],
+
+    "case_clause_sequence": [
+      ["pattern_list", ";;"],
+      ["case_clause_sequence", "pattern_list", ";;"],
+      ["pattern_list", ";&"],
+      ["case_clause_sequence", "pattern_list", ";&"],
+      ["pattern_list", ";;&"],
+      ["case_clause_sequence", "pattern_list", ";;&"]
+    ],
+
+    "pattern_list": [
+      ["newline_list", "pattern", ")", "compound_list"],
+      ["newline_list", "pattern", ")", "newline_list"],
+      ["newline_list", "(", "pattern", ")", "compound_list"],
+      ["newline_list", "(", "pattern", ")", "newline_list"]
+    ],
+
+    "pattern": [
+      ["WORD"],
+      ["pattern", "|", "WORD"]
+    ],
+
+    "if_command": [
+      ["IF", "compound_list", "THEN", "compound_list", "FI"],
+      ["IF", "compound_list", "THEN", "compound_list", "ELSE", "compound_list", "FI"],
+      ["IF", "compound_list", "THEN", "compound_list", "elif_clause", "FI"]
+    ],
+
+    "elif_clause": [
+      ["ELIF", "compound_list", "THEN", "compound_list"],
+      ["ELIF", "compound_list", "THEN", "compound_list", "ELSE", "compound_list"],
+      ["ELIF", "compound_list", "THEN", "compound_list", "elif_clause"]
+    ],
+
+    "function_def": [
+      ["WORD", "(", ")", "newline_list", "function_body"],
+      ["FUNCTION", "WORD", "(", ")", "newline_list", "function_body"],
+      ["FUNCTION", "WORD", "function_body"],
+      ["FUNCTION", "WORD", "newline", "newline_list", "function_body"]
+    ],
+
+    "function_body": [
+      ["shell_command"],
+      ["shell_command", "redirection_list"]
+    ],
+
+    "subshell": [
+      ["(", "compound_list", ")"]
+    ],
+
+    "group_command": [
+      ["{", "compound_list", "}"]
+    ],
+
+    "arith_command": [
+      ["ARITH_CMD"]
+    ],
+
+    "cond_command": [
+      ["COND_START", "COND_CMD", "COND_END"]
+    ],
+
+    "coproc": [
+      ["COPROC", "shell_command"],
+      ["COPROC", "shell_command", "redirection_list"],
+      ["COPROC", "WORD", "shell_command"],
+      ["COPROC", "WORD", "shell_command", "redirection_list"],
+      ["COPROC", "simple_command"]
+    ],
+
+    "compound_list": [
+      ["newline_list", "list0"],
+      ["newline_list", "list1"]
+    ],
+
+    "list0": [
+      ["list1", "newline", "newline_list"],
+      ["list1", "&", "newline_list"],
+      ["list1", ";", "newline_list"]
+    ],
+
+    "list1": [
+      ["pipeline_command"],
+      ["list1", "&&", "newline_list", "list1"],
+      ["list1", "||", "newline_list", "list1"],
+      ["list1", "&", "newline_list", "list1"],
+      ["list1", ";", "newline_list", "list1"],
+      ["list1", "newline", "newline_list", "list1"]
+    ],
+
+    "word_list": [
+      ["WORD"],
+      ["word_list", "WORD"]
+    ],
+
+    "redirection_list": [
+      ["redirection"],
+      ["redirection_list", "redirection"]
+    ]
+  },
+
+  "notes": {
+    "brace_variants": "parse.y also allows { } in place of do/done for for/select/arith_for. Omitted here for clarity — same semantics.",
+    "newline_list": "Zero or more newlines. Acts as whitespace in compound contexts.",
+    "list_terminator": "newline or ;",
+    "simple_list_terminator": "newline or ; or EOF",
+    "context_dependent_tokenization": "Reserved words (if, for, etc.) are only recognized in command position. The tokenizer checks last_read_token to decide.",
+    "heredoc_deferred": "Heredoc bodies are collected after the complete command is parsed, at the next newline boundary.",
+    "cond_and_arith_subparsers": "[[ ]] and (( )) are parsed by recursive-descent sub-parsers inside the tokenizer, not by the Yacc grammar."
+  }
+}

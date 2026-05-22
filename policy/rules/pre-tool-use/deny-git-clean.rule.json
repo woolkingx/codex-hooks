@@ -1,0 +1,39 @@
+{
+  "id": "deny-git-clean",
+  "event": "pre-tool-use",
+  "priority": 50,
+  "trigger": {
+    "$.tool_name": "Bash"
+  },
+  "feature": {
+    "bash-command": {
+      "value": {
+        "all": [
+          {
+            "path": "$.tool_input.command",
+            "arg": {
+              "name": "git",
+              "contains": "clean"
+            }
+          },
+          {
+            "path": "$.tool_input.command",
+            "flags": {
+              "name": "git",
+              "regex": "^(--force|-[fdx]+)$"
+            }
+          }
+        ]
+      }
+    }
+  },
+  "output": {
+    "decision": "block",
+    "reason": "git clean with -f/--force is disabled.",
+    "hookSpecificOutput": {
+      "hookEventName": "PreToolUse",
+      "permissionDecision": "deny",
+      "permissionDecisionReason": "git clean with -f/--force is disabled."
+    }
+  }
+}

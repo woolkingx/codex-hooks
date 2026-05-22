@@ -1,0 +1,38 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "pathexp.json",
+  "title": "Bash Pathname Expansion",
+  "description": "Globbing and pathname expansion from pathexp.h.",
+
+  "definitions": {
+
+    "GlobQuoteFlags": {
+      "type": "object",
+      "description": "QGLOB_* flags for quote_string_for_globbing.",
+      "properties": {
+        "QGLOB_CVTNULL":  { "const": 1,  "description": "Convert QUOTED_NULL to \\0" },
+        "QGLOB_FILENAME": { "const": 2,  "description": "Quote for filename matching" },
+        "QGLOB_REGEXP":   { "const": 4,  "description": "Quote ERE for regcomp" },
+        "QGLOB_CTLESC":   { "const": 8,  "description": "CTLESC CTLESC → CTLESC" },
+        "QGLOB_DEQUOTE":  { "const": 16, "description": "Dequote but quote glob chars" }
+      }
+    },
+
+    "GlobSortMode": {
+      "type": "object",
+      "description": "Glob result sorting modes.",
+      "properties": {
+        "SORT_NONE":    { "const": 0 },
+        "SORT_NAME":    { "const": 1 },
+        "SORT_SIZE":    { "const": 2 },
+        "SORT_MTIME":   { "const": 3 },
+        "SORT_ATIME":   { "const": 4 },
+        "SORT_CTIME":   { "const": 5 },
+        "SORT_BLOCKS":  { "const": 6 },
+        "SORT_NUMERIC": { "const": 7 },
+        "SORT_NOSORT":  { "const": 8 },
+        "SORT_REVERSE": { "const": 128, "description": "OR with any sort mode to reverse" }
+      }
+    }
+  }
+}

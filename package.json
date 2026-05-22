@@ -1,0 +1,51 @@
+{
+  "name": "codex-hooks",
+  "version": "0.1.27",
+  "description": "Codex-native hook policy runtime for local safety guardrails.",
+  "type": "module",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/codex-hooks/codex-hooks.git"
+  },
+  "homepage": "https://github.com/codex-hooks/codex-hooks#readme",
+  "bugs": {
+    "url": "https://github.com/codex-hooks/codex-hooks/issues"
+  },
+  "keywords": [
+    "codex",
+    "hooks",
+    "policy",
+    "json-schema",
+    "cli",
+    "safety"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "bin": {
+    "codex-hooks": "./src/adapters/cli.mjs"
+  },
+  "files": [
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md",
+    "src/",
+    "schema/",
+    "policy/",
+    "skills/",
+    "lib/",
+    "docs/handbook/",
+    "examples/",
+    "scripts/",
+    "test/"
+  ],
+  "scripts": {
+    "test": "node --test test/*.test.mjs src/events/*/test.mjs",
+    "cli": "node src/adapters/cli.mjs",
+    "check:handbook": "node scripts/check-handbook.mjs docs/handbook",
+    "check:stale": "node scripts/check-stale-runtime.mjs",
+    "smoke": "node scripts/smoke-pre-tool-use.mjs",
+    "verify": "npm run check:handbook && npm run check:stale && node src/adapters/cli.mjs policy requirements sync && npm test && npm run smoke"
+  }
+}

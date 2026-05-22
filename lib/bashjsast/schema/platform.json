@@ -1,0 +1,43 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "platform.json",
+  "title": "Bash Platform & Memory",
+  "description": "Platform compatibility headers that have no schema-worthy types but are documented for completeness. Covers bashansi.h, bashtypes.h, bashintl.h, config-bot.h, conftypes.h, dispose_cmd.h, sig.h, siglist.h, unwind_prot.h, xmalloc.h, bashline.h, patchlevel.h.",
+
+  "definitions": {
+
+    "CoveredHeaders": {
+      "type": "object",
+      "description": "Headers with no meaningful data types for a JS parser. Listed for audit completeness.",
+      "properties": {
+        "bashansi.h":     { "description": "ANSI C compat: string.h, stdlib.h, stdbool.h, stddef.h includes" },
+        "bashtypes.h":    { "description": "System types: sys/types.h, inttypes.h, stdint.h includes" },
+        "bashintl.h":     { "description": "i18n: gettext macros _(), N_(), D_(), P_()" },
+        "config-bot.h":   { "description": "Post-configure adjustments: feature guards, multibyte detection" },
+        "conftypes.h":    { "description": "HOSTTYPE, OSTYPE, MACHTYPE string defines" },
+        "dispose_cmd.h":  { "description": "AST node destructor API (C memory management, N/A for JS)" },
+        "sig.h":          { "description": "Signal handler types and macros (BLOCK_SIGNAL, etc.)" },
+        "siglist.h":      { "description": "sys_siglist / strsignal compat" },
+        "unwind_prot.h":  { "description": "Unwind protection (C longjmp cleanup, N/A for JS)" },
+        "xmalloc.h":      { "description": "Memory allocation wrappers (xmalloc, xrealloc, xfree)" },
+        "bashline.h":     { "description": "Readline integration API (interactive shell, not parsing)" },
+        "patchlevel.h":   { "description": "PATCHLEVEL = 9 (bash 5.3 patch 9)" }
+      }
+    },
+
+    "PatchLevel": {
+      "const": 9,
+      "description": "Current bash patch level from patchlevel.h"
+    },
+
+    "HostInfo": {
+      "type": "object",
+      "description": "Host identification from conftypes.h.",
+      "properties": {
+        "HOSTTYPE": { "type": "string", "default": "unknown" },
+        "OSTYPE":   { "type": "string", "default": "unknown" },
+        "MACHTYPE": { "type": "string", "default": "unknown" }
+      }
+    }
+  }
+}

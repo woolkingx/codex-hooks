@@ -1,0 +1,27 @@
+{
+  "id": "block-dangerous-commands",
+  "event": "pre-tool-use",
+  "priority": 60,
+  "trigger": {
+    "$.tool_name": "Bash"
+  },
+  "feature": {
+    "bash-command": {
+      "value": {
+        "path": "$.tool_input.command",
+        "name": {
+          "regex": "^(mkfs(\\.\\w+)?|wipefs|shred|dd|fdisk|parted|mkswap|hdparm|blkdiscard)$"
+        }
+      }
+    }
+  },
+  "output": {
+    "decision": "block",
+    "reason": "Disk/device manipulation commands are disabled.",
+    "hookSpecificOutput": {
+      "hookEventName": "PreToolUse",
+      "permissionDecision": "deny",
+      "permissionDecisionReason": "Disk/device manipulation commands are disabled."
+    }
+  }
+}

@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>codex-hooks Interfaces</title>
+  <style>
+    body { font-family: system-ui, sans-serif; line-height: 1.5; margin: 2rem auto; max-width: 1120px; padding: 0 1rem; color: #1f2933; }
+    table { border-collapse: collapse; width: 100%; margin: 1rem 0; }
+    th, td { border: 1px solid #c7d0da; padding: 0.5rem; text-align: left; vertical-align: top; }
+    th { background: #eef2f6; } code, pre { background: #f3f5f7; border-radius: 4px; } code { padding: 0.1rem 0.25rem; } pre { padding: 0.75rem; overflow-x: auto; }
+    .status { font-weight: 700; }
+  </style>
+  <link rel="stylesheet" href="handbook.css">
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar" aria-labelledby="handbook-index">
+      <h2 id="handbook-index">Index</h2>
+      <nav aria-label="Handbook chapters">
+        <ol>
+          <li><a href="index.html">Handbook Home</a></li>
+          <li><a href="artifact-roles.html">Artifact Roles</a></li>
+          <li><a href="topology.html">System Topology</a></li>
+          <li><a href="schema-tree.html">Data Ontology</a></li>
+          <li><a href="api-schema.html">API Schema</a></li>
+          <li><a href="event-model.html">Event Model</a></li>
+          <li><a href="policy.html">Policy</a></li>
+          <li><a href="usage.html">Usage</a></li>
+          <li><a href="model-onboarding.html">Model Onboarding</a></li>
+          <li><a href="config.html">Config</a></li>
+          <li><a href="runtime-kernels.html">Runtime Kernels</a></li>
+          <li><a href="interfaces.html">Interfaces</a></li>
+          <li><a href="deployment.html">Deployment</a></li>
+          <li><a href="decision-flow.html">Decision Flow</a></li>
+          <li><a href="stage-actions.html">Stage Actions</a></li>
+          <li><a href="handbook-skills.html">Handbook Skills</a></li>
+          <li><a href="acceptance-gates.html">Acceptance Gates</a></li>
+          <li><a href="roadmap.html">Roadmap</a></li>
+        </ol>
+      </nav>
+    </aside>
+
+    <main class="content">
+  <h1>Interfaces</h1>
+
+  <section id="interfaces">
+    <table>
+      <thead>
+        <tr><th>interface</th><th>v1 status</th><th>contract</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>hook</code></td><td class="status">required</td><td>Read one official Codex hook JSON object from stdin and write one official Codex hook JSON output to stdout.</td></tr>
+        <tr><td><code>cli</code></td><td class="status">required</td><td>Run fixtures through the same schema-transition path. CLI must not invent hook semantics or emit non-official fields in hook wire output.</td></tr>
+        <tr><td><code>policy compiler</code></td><td class="status">target</td><td>Compile <code>policy/user.json</code> requirements into one rule file per id; write feedback to logs.</td></tr>
+        <tr><td><code>deploy cli</code></td><td class="status">implemented</td><td>Render official Codex hook config; run deployment doctor checks; produce a dry-run install plan, or write <code>hooks.json</code> with backup when <code>--apply</code> is set.</td></tr>
+        <tr><td><code>daemon</code></td><td class="status">roadmap</td><td>Future Unix socket manager using the same core for hot reload, shared state, and central management.</td></tr>
+        <tr><td><code>admin api</code></td><td class="status">roadmap</td><td>Future MCP or local HTTP API for policy CRUD, status, logs, and policy packs.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section id="cli-subcommands">
+    <h2>Implemented CLI Subcommands</h2>
+    <pre><code>codex-hooks hook              [--rules path] [--profile path] [--config path]
+                              [--log path] [--fail-closed true|false]
+                              [--dry-run true|false]
+codex-hooks run input.json    same flags
+codex-hooks events            list registered event kebab names
+codex-hooks policy compile    [--rules path] [--profile path] [--out file]
+codex-hooks policy lint       [--rules path] [--profile path]
+codex-hooks policy explain    rule-id [--rules path] [--profile path]
+codex-hooks policy test       rule-id --fixture event.json [--rules path]
+codex-hooks logs              [--log hooks.jsonl] [--tail 20]
+codex-hooks status            [--log hooks.jsonl] [--tail 1000]
+codex-hooks render-hooks      [--rules path] [--profile path] [--log path] [--command cmd]
+codex-hooks doctor            [--target project|user] [--rules path]
+codex-hooks install           [--target project|user] [--rules path] [--log path] [--apply]</code></pre>
+  </section>
+
+  <section id="target-cli">
+    <h2>Target Compiler CLI</h2>
+    <pre><code>codex-hooks policy requirements list|validate [--file policy/user.json]
+codex-hooks policy compile    [--user policy/user.json] [--out policy/rules]
+codex-hooks logs              [--log hooks.jsonl] [--tail 20]</code></pre>
+    <p>These commands are architecture targets. Compiler failure, gap, trace, explain, and diagnostic output belongs to log data.</p>
+  </section>
+
+  <section id="v1-runtime">
+    <h2>V1 Runtime Rule</h2>
+    <pre><code>V1 has no daemon, no socket, no background state, and no hot reload.
+Every hook invocation is a fresh process.
+Rules reload at process start.
+The manager core must remain daemon-ready.
+V1 hook stdout contains only official Codex hook output fields.</code></pre>
+  </section>
+    </main>
+  </div>
+</body>
+</html>

@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>codex-hooks Event Model</title>
+  <style>
+    body { font-family: system-ui, sans-serif; line-height: 1.55; margin: 2rem auto; max-width: 1120px; padding: 0 1rem; color: #1f2933; }
+    table { border-collapse: collapse; width: 100%; margin: 1rem 0; }
+    th, td { border: 1px solid #c7d0da; padding: 0.5rem; text-align: left; vertical-align: top; }
+    th { background: #eef2f6; } code, pre { background: #f3f5f7; border-radius: 4px; } code { padding: 0.1rem 0.25rem; } pre { padding: 0.75rem; overflow-x: auto; line-height: 1.4; }
+  </style>
+  <link rel="stylesheet" href="handbook.css">
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar" aria-labelledby="handbook-index">
+      <h2 id="handbook-index">Index</h2>
+      <nav aria-label="Handbook chapters">
+        <ol>
+          <li><a href="index.html">Handbook Home</a></li>
+          <li><a href="artifact-roles.html">Artifact Roles</a></li>
+          <li><a href="topology.html">System Topology</a></li>
+          <li><a href="schema-tree.html">Data Ontology</a></li>
+          <li><a href="api-schema.html">API Schema</a></li>
+          <li><a href="event-model.html">Event Model</a></li>
+          <li><a href="policy.html">Policy</a></li>
+          <li><a href="usage.html">Usage</a></li>
+          <li><a href="model-onboarding.html">Model Onboarding</a></li>
+          <li><a href="config.html">Config</a></li>
+          <li><a href="runtime-kernels.html">Runtime Kernels</a></li>
+          <li><a href="interfaces.html">Interfaces</a></li>
+          <li><a href="deployment.html">Deployment</a></li>
+          <li><a href="decision-flow.html">Decision Flow</a></li>
+          <li><a href="stage-actions.html">Stage Actions</a></li>
+          <li><a href="handbook-skills.html">Handbook Skills</a></li>
+          <li><a href="acceptance-gates.html">Acceptance Gates</a></li>
+          <li><a href="roadmap.html">Roadmap</a></li>
+        </ol>
+      </nav>
+    </aside>
+
+    <main class="content">
+  <h1>Event Model</h1>
+
+  <section id="definition">
+    <h2>1. Definition</h2>
+    <p>An event is a channel name. It owns no fourth schema and no normalized event PDU. Each event runtime has one tuple:</p>
+    <pre><code>(input schema, rule schema, output schema, executor)</code></pre>
+  </section>
+
+  <section id="tuple">
+    <h2>2. Runtime Tuple</h2>
+    <table>
+      <thead><tr><th>part</th><th>role</th></tr></thead>
+      <tbody>
+        <tr><td>input schema</td><td>Official Codex hook input data for this channel.</td></tr>
+        <tr><td>rule schema</td><td>Event-trigger rule data: flat input path values, admitted feature module data, and official output data. It reaches feature and output schemas by <code>$ref</code>.</td></tr>
+        <tr><td>output schema</td><td>Official Codex hook output data for this channel.</td></tr>
+        <tr><td>executor</td><td>Code that validates input, applies trigger and feature data, validates output, and writes wire output.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section id="rule-data">
+    <h2>3. Rule Data</h2>
+    <p>Rule data is not a match object, not a copied input schema, and not a processor registry. It is an event trigger over input path values plus admitted feature module data.</p>
+    <pre><code>{
+  "id": "deny-rm",
+  "event": "pre-tool-use",
+  "priority": 50,
+  "trigger": { "$.tool_name": "Bash" },
+  "feature": {
+    "bash-command": {
+      "value": {
+        "path": "$.tool_input.command",
+        "name": "rm"
+      }
+    }
+  },
+  "output": {
+    "decision": "block",
+    "hookSpecificOutput": {
+      "hookEventName": "PreToolUse",
+      "permissionDecision": "deny",
+      "permissionDecisionReason": "rm denied"
+    }
+  }
+}</code></pre>
+    <p><code>trigger</code> owns only path-value comparisons. <code>feature</code> owns module capability data. <code>output</code> owns the next-PDU value. Parser-derived values remain feature-private and never become rule fields. Code must not invent intermediate data roots between input schema, rule schema, and output schema.</p>
+  </section>
+
+  <section id="functions">
+    <h2>4. Feature Modules</h2>
+    <p>A feature module owns one capability, its schema, and its handler. Event rule schemas admit feature modules by name. There is no central feature schema root and no free-form feature string syntax.</p>
+    <p>Feature schemas are referenced schemas, not event tuple members. The event still owns only input schema, rule schema, output schema, and executor. A rule schema may admit <code>rule.feature.&lt;name&gt;</code> by <code>$ref</code>, but that does not create another event layer.</p>
+  </section>
+
+  <section id="logs">
+    <h2>5. Runtime Observations</h2>
+    <p>Errors, compiler gaps, explanations, traces, and diagnostics are log information. Hook stdout still contains only official output data. If an output schema does not admit an error branch, the error is logged and reported out of band.</p>
+  </section>
+
+  <section id="permission-mode-topology">
+    <h2>6. Permission Mode Topology</h2>
+    <p>Codex permission mode changes the event surface. In sandbox or restricted modes, the practical hook surface collapses to <code>PermissionRequest</code>. In full access mode, <code>permission_mode=bypassPermissions</code>, Codex exposes the full hook surface and codex-hooks becomes the local safety manager.</p>
+    <pre><code>restricted/sandbox mode -&gt; PermissionRequest only
+bypassPermissions/full access -&gt; PermissionRequest + PreToolUse + PostToolUse + lifecycle events</code></pre>
+    <p>Permission mode handling is event-owned, not a uniform global helper. Each event uses the official output fields available to that event: PermissionRequest returns allow/deny, PreToolUse returns block/deny, prompt/tool/stop gates return block when their schemas admit it, and bootstrap events stop with context when their schemas admit only context/stop.</p>
+  </section>
+
+  <section id="permission-request">
+    <h2>7. PermissionRequest Mode Gate</h2>
+    <p><code>PermissionRequest</code> remains its own event owner and validates against the official PermissionRequest input/output schemas. Its first job is not policy richness; it is a mode gate. If the incoming <code>permission_mode</code> is not <code>bypassPermissions</code>, the executor returns official PermissionRequest <code>deny</code> output with a message telling the user to restart Codex in full-access mode.</p>
+    <p>Only after that mode gate passes may the executor project the incoming PermissionRequest input into an internal PreToolUse-shaped SDU, evaluate existing <code>pre-tool-use</code> rules, and map admitted allow/deny results back into official PermissionRequest output.</p>
+    <pre><code>PermissionRequest input
+  -&gt; permission_mode gate
+     -&gt; not bypassPermissions: PermissionRequest deny + full-access message
+     -&gt; bypassPermissions:
+        -&gt; permission-request rules
+        -&gt; internal PreToolUse projection
+        -&gt; pre-tool-use rules
+        -&gt; PermissionRequest output</code></pre>
+    <p>The projection is not a fourth event schema and not a copied rule file. It is event-owner logic for reusing compatible rule data while preserving the official output boundary. Unmappable PreToolUse results, such as ask/context-only outputs, do not emit PermissionRequest output.</p>
+  </section>
+
+  <section id="retracted">
+    <h2>8. Retracted</h2>
+    <table>
+      <thead><tr><th>retracted thing</th><th>reason</th></tr></thead>
+      <tbody>
+        <tr><td><code>event.schema.json</code></td><td>Invented event PDU layer.</td></tr>
+        <tr><td>event metadata file as schema/config layer</td><td>Invented fourth event object.</td></tr>
+        <tr><td>helper allow-list root</td><td>Helper availability is not event data; rule schema owns legal rule data.</td></tr>
+        <tr><td>derived fields</td><td>Intermediate computation, not data ontology.</td></tr>
+      </tbody>
+    </table>
+  </section>
+    </main>
+  </div>
+</body>
+</html>

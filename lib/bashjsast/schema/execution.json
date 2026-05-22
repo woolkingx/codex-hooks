@@ -1,0 +1,75 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "execution.json",
+  "title": "Bash Execution Layer",
+  "description": "Structures from execute_cmd.h, shell.h. Command execution, exit statuses, pattern matching flags, and parser state save/restore.",
+
+  "definitions": {
+
+    "ExitStatus": {
+      "type": "object",
+      "description": "Special exit status values from shell.h.",
+      "properties": {
+        "EXECUTION_SUCCESS": { "const": 0 },
+        "EXECUTION_FAILURE": { "const": 1 },
+        "EX_BADUSAGE":       { "const": 2, "description": "Usage error from builtins" },
+        "EX_RETRYFAIL":      { "const": 124 },
+        "EX_WEXPCOMSUB":     { "const": 125 },
+        "EX_NOEXEC":         { "const": 126, "description": "Permission denied or not executable" },
+        "EX_NOTFOUND":       { "const": 127, "description": "Command not found" },
+        "EX_SHERRBASE":      { "const": 256, "description": "Base for internal shell errors" },
+        "EX_BADSYNTAX":      { "const": 257 },
+        "EX_USAGE":          { "const": 258 },
+        "EX_REDIRFAIL":      { "const": 259 },
+        "EX_BADASSIGN":      { "const": 260 },
+        "EX_EXPFAIL":        { "const": 261 }
+      }
+    },
+
+    "MatchFlags": {
+      "type": "object",
+      "description": "Pattern matching flags for ${param/pattern/string} etc.",
+      "properties": {
+        "MATCH_ANY":      { "const": 0,   "description": "Match anywhere" },
+        "MATCH_BEG":      { "const": 1,   "description": "Match at beginning (#)" },
+        "MATCH_END":      { "const": 2,   "description": "Match at end (%)" },
+        "MATCH_GLOBREP":  { "const": 16,  "description": "Global replacement (//)" },
+        "MATCH_QUOTED":   { "const": 32,  "description": "Pattern is quoted" },
+        "MATCH_STARSUB":  { "const": 128, "description": "$* substitution" }
+      }
+    },
+
+    "ParserSaveState": {
+      "type": "object",
+      "description": "sh_parser_state_t — fields saved/restored during PROMPT_COMMAND execution.",
+      "properties": {
+        "parser_state":               { "type": "integer" },
+        "token_state":                { "type": "array", "items": { "type": "integer" } },
+        "parsing_command":            { "type": "integer" },
+        "token":                      { "type": "string" },
+        "token_buffer_size":          { "type": "integer" },
+        "eof_token":                  { "type": "integer" },
+        "input_line_terminator":      { "type": "integer" },
+        "eof_encountered":            { "type": "integer" },
+        "current_command_line_count":  { "type": "integer" },
+        "last_command_exit_value":     { "type": "integer" },
+        "expand_aliases":             { "type": "integer" },
+        "need_here_doc":              { "type": "integer" },
+        "here_doc_first_line":        { "type": "integer" }
+      }
+    },
+
+    "ForkFlags": {
+      "type": "object",
+      "description": "Flags for make_child() from jobs.h.",
+      "properties": {
+        "FORK_SYNC":     { "const": 0,  "description": "Normal synchronous process" },
+        "FORK_ASYNC":    { "const": 1,  "description": "Background process" },
+        "FORK_NOJOB":    { "const": 2,  "description": "Don't put in separate pgrp" },
+        "FORK_NOTERM":   { "const": 4,  "description": "Don't give terminal to pgrp" },
+        "FORK_COMSUB":   { "const": 8,  "description": "Command substitution" },
+        "FORK_PROCSUB":  { "const": 16, "description": "Process substitution" }
+      }
+    }
+  }
+}

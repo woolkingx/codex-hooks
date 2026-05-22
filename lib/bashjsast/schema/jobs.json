@@ -1,0 +1,108 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "jobs.json",
+  "title": "Bash Job Control",
+  "description": "Structures from jobs.h. Process, job, pipeline, and job state management.",
+
+  "definitions": {
+
+    "Process": {
+      "type": "object",
+      "description": "A single process in a pipeline. Circular linked list.",
+      "required": ["pid", "command"],
+      "properties": {
+        "pid":     { "type": "integer" },
+        "status":  { "type": "integer" },
+        "running": { "$ref": "#/definitions/ProcessState" },
+        "flags":   { "type": "integer" },
+        "command": { "type": "string" }
+      }
+    },
+
+    "ProcessState": {
+      "type": "integer",
+      "description": "Values for process running field.",
+      "enum": [0, 1, 2, 4],
+      "x-names": {
+        "PS_DONE":     0,
+        "PS_RUNNING":  1,
+        "PS_STOPPED":  2,
+        "PS_RECYCLED": 4
+      }
+    },
+
+    "ProcessFlags": {
+      "type": "object",
+      "properties": {
+        "PROC_WAITING":  { "const": 1 },
+        "PROC_PROCSUB":  { "const": 2 },
+        "PROC_COMSUB":   { "const": 4 },
+        "PROC_LASTPIPE": { "const": 8 }
+      }
+    },
+
+    "Job": {
+      "type": "object",
+      "description": "A job — one or more processes in a pipeline.",
+      "properties": {
+        "wd":    { "type": "string", "description": "Working directory at invocation" },
+        "pipe":  { "$ref": "#/definitions/Process" },
+        "pgrp":  { "type": "integer", "description": "Process group ID" },
+        "state": { "$ref": "#/definitions/JobState" },
+        "flags": { "type": "integer" }
+      }
+    },
+
+    "JobState": {
+      "type": "string",
+      "enum": ["JNONE", "JRUNNING", "JSTOPPED", "JDEAD", "JMIXED"],
+      "x-values": {
+        "JNONE":    -1,
+        "JRUNNING":  1,
+        "JSTOPPED":  2,
+        "JDEAD":     4,
+        "JMIXED":    8
+      }
+    },
+
+    "JobFlags": {
+      "type": "object",
+      "description": "FLAGS field values for JOB struct.",
+      "properties": {
+        "J_FOREGROUND": { "const": 1,   "description": "Running in foreground" },
+        "J_NOTIFIED":   { "const": 2,   "description": "Already notified about state" },
+        "J_JOBCONTROL": { "const": 4,   "description": "Started under job control" },
+        "J_NOHUP":      { "const": 8,   "description": "Don't send SIGHUP" },
+        "J_STATSAVED":  { "const": 16,  "description": "Status saved via $!" },
+        "J_ASYNC":      { "const": 32,  "description": "Started asynchronously" },
+        "J_PIPEFAIL":   { "const": 64,  "description": "pipefail set at start" },
+        "J_WAITING":    { "const": 128, "description": "In wait list" }
+      }
+    },
+
+    "WaitFlags": {
+      "type": "object",
+      "properties": {
+        "JWAIT_PERROR":  { "const": 1 },
+        "JWAIT_FORCE":   { "const": 2 },
+        "JWAIT_NOWAIT":  { "const": 4 },
+        "JWAIT_WAITING": { "const": 8 },
+        "JWAIT_NOTERM":  { "const": 256 }
+      }
+    },
+
+    "ListFormat": {
+      "type": "object",
+      "description": "Defines for jobs listing format.",
+      "properties": {
+        "JLIST_STANDARD":       { "const": 0 },
+        "JLIST_LONG":           { "const": 1 },
+        "JLIST_PID_ONLY":       { "const": 2 },
+        "JLIST_CHANGED_ONLY":   { "const": 3 },
+        "JLIST_NONINTERACTIVE": { "const": 4 },
+        "JLIST_POSIX":          { "const": 5 },
+        "JLIST_BGONLY":         { "const": 6 }
+      }
+    }
+  }
+}

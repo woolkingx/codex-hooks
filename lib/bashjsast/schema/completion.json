@@ -1,0 +1,73 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "completion.json",
+  "title": "Bash Programmable Completion",
+  "description": "Completion spec structures from pcomplete.h.",
+
+  "definitions": {
+
+    "CompSpec": {
+      "type": "object",
+      "description": "COMPSPEC — completion specification for a command.",
+      "properties": {
+        "actions":   { "type": "integer", "description": "CA_* bitmask of completion actions" },
+        "options":   { "type": "integer", "description": "COPT_* bitmask of options" },
+        "globpat":   { "type": "string" },
+        "words":     { "type": "string" },
+        "prefix":    { "type": "string" },
+        "suffix":    { "type": "string" },
+        "funcname":  { "type": "string" },
+        "command":   { "type": "string" },
+        "lcommand":  { "type": "string" },
+        "filterpat": { "type": "string" }
+      }
+    },
+
+    "CompActions": {
+      "type": "object",
+      "description": "CA_* action flags — what types of completions to generate.",
+      "properties": {
+        "CA_ALIAS":     { "const": 1 },
+        "CA_ARRAYVAR":  { "const": 2 },
+        "CA_BINDING":   { "const": 4 },
+        "CA_BUILTIN":   { "const": 8 },
+        "CA_COMMAND":   { "const": 16 },
+        "CA_DIRECTORY": { "const": 32 },
+        "CA_DISABLED":  { "const": 64 },
+        "CA_ENABLED":   { "const": 128 },
+        "CA_EXPORT":    { "const": 256 },
+        "CA_FILE":      { "const": 512 },
+        "CA_FUNCTION":  { "const": 1024 },
+        "CA_GROUP":     { "const": 2048 },
+        "CA_HELPTOPIC": { "const": 4096 },
+        "CA_HOSTNAME":  { "const": 8192 },
+        "CA_JOB":       { "const": 16384 },
+        "CA_KEYWORD":   { "const": 32768 },
+        "CA_RUNNING":   { "const": 65536 },
+        "CA_SERVICE":   { "const": 131072 },
+        "CA_SETOPT":    { "const": 262144 },
+        "CA_SHOPT":     { "const": 524288 },
+        "CA_SIGNAL":    { "const": 1048576 },
+        "CA_STOPPED":   { "const": 2097152 },
+        "CA_USER":      { "const": 4194304 },
+        "CA_VARIABLE":  { "const": 8388608 }
+      }
+    },
+
+    "CompOptions": {
+      "type": "object",
+      "description": "COPT_* option flags.",
+      "properties": {
+        "COPT_DEFAULT":      { "const": 2 },
+        "COPT_FILENAMES":    { "const": 4 },
+        "COPT_DIRNAMES":     { "const": 8 },
+        "COPT_NOQUOTE":      { "const": 16 },
+        "COPT_NOSPACE":      { "const": 32 },
+        "COPT_BASHDEFAULT":  { "const": 64 },
+        "COPT_PLUSDIRS":     { "const": 128 },
+        "COPT_NOSORT":       { "const": 256 },
+        "COPT_FULLQUOTE":    { "const": 512 }
+      }
+    }
+  }
+}

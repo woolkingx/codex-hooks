@@ -1,0 +1,91 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "codex-hooks.policy.profile",
+  "description": "Composition overlay over the rule store. Selects, enables, and orders rule files by id or tag.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "version": {
+      "type": "string",
+      "default": "0.0.0"
+    },
+    "id": {
+      "type": "string"
+    },
+    "enabled": {
+      "type": "boolean",
+      "default": true
+    },
+    "extends": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "default": null
+    },
+    "rules": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "overrides": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "by_id": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/rule_overlay"
+          },
+          "default": {}
+        },
+        "by_tag": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/rule_overlay"
+          },
+          "default": {}
+        }
+      },
+      "default": {}
+    },
+    "defaults": {
+      "$ref": "#/definitions/rule_overlay",
+      "default": {}
+    }
+  },
+  "required": [
+    "version",
+    "id",
+    "rules"
+  ],
+  "definitions": {
+    "rule_overlay": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "oneOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "const": "test"
+            }
+          ]
+        },
+        "priority": {
+          "type": "integer"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,99 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "options.json",
+  "title": "Bash Shell Options",
+  "description": "Shell flags from flags.h and shopt options. Controls parser and execution behavior.",
+
+  "definitions": {
+
+    "SetOptions": {
+      "type": "object",
+      "description": "Options settable via set -o or set -X. From flags.h extern declarations.",
+      "properties": {
+        "a": { "const": "mark_modified_vars",        "description": "Export modified variables (allexport)" },
+        "b": { "const": "asynchronous_notification",  "description": "Report background job status immediately (notify)" },
+        "e": { "const": "errexit_flag",               "description": "Exit on error (errexit)" },
+        "f": { "const": "disallow_filename_globbing",  "description": "Disable globbing (noglob)" },
+        "h": { "const": "hashing_enabled",             "description": "Hash command locations (hashall)" },
+        "i": { "const": "forced_interactive",          "description": "Interactive shell" },
+        "k": { "const": "place_keywords_in_env",       "description": "Place assignments in env (keyword)" },
+        "m": { "const": "jobs_m_flag",                 "description": "Job control (monitor)" },
+        "n": { "const": "read_but_dont_execute",       "description": "Read but don't execute (noexec)" },
+        "p": { "const": "privileged_mode",             "description": "Privileged mode" },
+        "t": { "const": "just_one_command",            "description": "Exit after one command (onecmd)" },
+        "u": { "const": "unbound_vars_is_error",       "description": "Error on unset variables (nounset)" },
+        "v": { "const": "verbose_flag",                "description": "Print input lines (verbose)" },
+        "x": { "const": "echo_command_at_execute",     "description": "Print commands before execution (xtrace)" },
+        "B": { "const": "brace_expansion",             "description": "Brace expansion (braceexpand)" },
+        "C": { "const": "noclobber",                   "description": "Don't overwrite with > (noclobber)" },
+        "H": { "const": "history_expansion",           "description": "! history expansion (histexpand)" },
+        "T": { "const": "function_trace_mode",         "description": "Inherit DEBUG/RETURN traps (functrace)" },
+        "E": { "const": "error_trace_mode",            "description": "Inherit ERR trap (errtrace)" },
+        "o pipefail": { "const": "pipefail_opt",       "description": "Pipeline exit status = last non-zero" }
+      }
+    },
+
+    "ShoptOptions": {
+      "type": "array",
+      "description": "Options settable via shopt. Partial list of parser-relevant ones.",
+      "items": { "type": "string" },
+      "const": [
+        "autocd",
+        "cdable_vars",
+        "cdspell",
+        "checkhash",
+        "checkjobs",
+        "checkwinsize",
+        "cmdhist",
+        "compat31", "compat32", "compat40", "compat41", "compat42", "compat43", "compat44",
+        "complete_fullquote",
+        "direxpand",
+        "dirspell",
+        "dotglob",
+        "execfail",
+        "expand_aliases",
+        "extdebug",
+        "extglob",
+        "extquote",
+        "failglob",
+        "force_fignore",
+        "globasciiranges",
+        "globskipdots",
+        "globstar",
+        "gnu_errfmt",
+        "histappend",
+        "histreedit",
+        "histverify",
+        "hostcomplete",
+        "huponexit",
+        "inherit_errexit",
+        "interactive_comments",
+        "lastpipe",
+        "lithist",
+        "localvar_inherit",
+        "localvar_unset",
+        "login_shell",
+        "mailwarn",
+        "no_empty_cmd_completion",
+        "nocaseglob",
+        "nocasematch",
+        "noexpand_translation",
+        "nullglob",
+        "patsub_replacement",
+        "progcomp",
+        "progcomp_alias",
+        "promptvars",
+        "restricted_shell",
+        "shift_verbose",
+        "sourcepath",
+        "varredir_close",
+        "xpg_echo"
+      ]
+    },
+
+    "InteractiveComments": {
+      "type": "boolean",
+      "description": "When true, # starts a comment in interactive shells. From flags.h. Default on."
+    }
+  }
+}

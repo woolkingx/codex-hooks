@@ -1,0 +1,10 @@
+{
+  "cwd": "/tmp/codex-hooks",
+  "hook_event_name": "UserPromptSubmit",
+  "model": "gpt-5.4",
+  "permission_mode": "bypassPermissions",
+  "prompt": "hello",
+  "session_id": "session-1",
+  "transcript_path": null,
+  "turn_id": "turn-1"
+}

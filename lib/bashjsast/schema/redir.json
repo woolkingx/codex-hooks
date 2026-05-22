@@ -1,0 +1,32 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "redir.json",
+  "title": "Bash Redirection Execution",
+  "description": "Redirection runtime flags from redir.h. Separate from redirect.json (AST-level).",
+
+  "definitions": {
+
+    "RedirExecFlags": {
+      "type": "object",
+      "description": "Flags for do_redirections().",
+      "properties": {
+        "RX_ACTIVE":  { "const": 1, "description": "Actually perform the redirection" },
+        "RX_UNDOABLE":{ "const": 2, "description": "Build undo list" },
+        "RX_CLEXEC":  { "const": 4, "description": "Set close-on-exec for fds > 2" }
+      }
+    },
+
+    "RedirRuntimeFlags": {
+      "type": "object",
+      "description": "rflags member of REDIRECT struct at runtime.",
+      "properties": {
+        "REDIR_VARASSIGN": { "const": 1,    "description": "{varname} redirect (from command.h)" },
+        "RX_INTERNAL":     { "const": 128,   "description": "Internal redirection" },
+        "RX_USER":         { "const": 256,   "description": "User-specified redirection" },
+        "RX_SAVCLEXEC":    { "const": 512,   "description": "Set close-on-exec off in restored fd" },
+        "RX_SAVEFD":       { "const": 1024,  "description": "fd used to save another" },
+        "RX_EXPANDED":     { "const": 2048,  "description": "Already expanded" }
+      }
+    }
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "id": "deny-git-reflog-operation",
+  "event": "pre-tool-use",
+  "priority": 50,
+  "trigger": {
+    "$.tool_name": "Bash"
+  },
+  "feature": {
+    "bash-command": {
+      "value": {
+        "all": [
+          {
+            "path": "$.tool_input.command",
+            "name": "git"
+          },
+          {
+            "path": "$.tool_input.command",
+            "arg": {
+              "name": "git",
+              "contains": "reflog"
+            }
+          }
+        ]
+      }
+    }
+  },
+  "output": {
+    "decision": "block",
+    "reason": "git reflog operations are disabled.",
+    "hookSpecificOutput": {
+      "hookEventName": "PreToolUse",
+      "permissionDecision": "deny",
+      "permissionDecisionReason": "git reflog operations are disabled."
+    }
+  }
+}

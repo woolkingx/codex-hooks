@@ -1,0 +1,25 @@
+{
+  "id": "deny-rm",
+  "event": "pre-tool-use",
+  "priority": 50,
+  "trigger": {
+    "$.tool_name": "Bash"
+  },
+  "feature": {
+    "bash-command": {
+      "value": {
+        "path": "$.tool_input.command",
+        "name": "rm"
+      }
+    }
+  },
+  "output": {
+    "decision": "block",
+    "reason": "rm is disabled. Move files to .cleanup/ or .backup/.",
+    "hookSpecificOutput": {
+      "hookEventName": "PreToolUse",
+      "permissionDecision": "deny",
+      "permissionDecisionReason": "rm is disabled. Move files to .cleanup/ or .backup/."
+    }
+  }
+}

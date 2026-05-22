@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>codex-hooks Roadmap</title>
+  <style>
+    body { font-family: system-ui, sans-serif; line-height: 1.5; margin: 2rem auto; max-width: 1120px; padding: 0 1rem; color: #1f2933; }
+    table { border-collapse: collapse; width: 100%; margin: 1rem 0; }
+    th, td { border: 1px solid #c7d0da; padding: 0.5rem; text-align: left; vertical-align: top; }
+    th { background: #eef2f6; } code { background: #f3f5f7; border-radius: 4px; padding: 0.1rem 0.25rem; }
+  </style>
+  <link rel="stylesheet" href="handbook.css">
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar" aria-labelledby="handbook-index">
+      <h2 id="handbook-index">Index</h2>
+      <nav aria-label="Handbook chapters">
+        <ol>
+          <li><a href="index.html">Handbook Home</a></li>
+          <li><a href="artifact-roles.html">Artifact Roles</a></li>
+          <li><a href="topology.html">System Topology</a></li>
+          <li><a href="schema-tree.html">Data Ontology</a></li>
+          <li><a href="api-schema.html">API Schema</a></li>
+          <li><a href="event-model.html">Event Model</a></li>
+          <li><a href="policy.html">Policy</a></li>
+          <li><a href="usage.html">Usage</a></li>
+          <li><a href="model-onboarding.html">Model Onboarding</a></li>
+          <li><a href="config.html">Config</a></li>
+          <li><a href="runtime-kernels.html">Runtime Kernels</a></li>
+          <li><a href="interfaces.html">Interfaces</a></li>
+          <li><a href="deployment.html">Deployment</a></li>
+          <li><a href="decision-flow.html">Decision Flow</a></li>
+          <li><a href="stage-actions.html">Stage Actions</a></li>
+          <li><a href="handbook-skills.html">Handbook Skills</a></li>
+          <li><a href="acceptance-gates.html">Acceptance Gates</a></li>
+          <li><a href="roadmap.html">Roadmap</a></li>
+        </ol>
+      </nav>
+    </aside>
+
+    <main class="content">
+  <h1>Roadmap</h1>
+
+  <section id="migration">
+    <h2>Architecture Migration</h2>
+    <table>
+      <thead><tr><th>phase</th><th>goal</th><th>status</th></tr></thead>
+      <tbody>
+        <tr><td>0.1 Stabilize Runtime</td><td>Keep local hook guardrails working on the canonical trigger + feature runtime.</td><td>done</td></tr>
+        <tr><td>0.2 Data Ontology Reset</td><td>Demote fake schema roots: central feature registry/config, event meta, gap, error root, report, trace, explain, diagnostic.</td><td>done</td></tr>
+        <tr><td>0.3 System Owner Alignment</td><td>Move user requirement ownership, rule sync, and event runtime surface into their owning modules/schemas.</td><td>done</td></tr>
+        <tr><td>0.4 Rule Schema Runtime</td><td>Runtime accepts only trigger + feature + output rule data.</td><td>done</td></tr>
+        <tr><td>0.5 Compiler Logging</td><td>Compiler emits rule data or log records; no gap artifact by default.</td><td>planned</td></tr>
+        <tr><td>1.0 Local Manager</td><td>Runtime reads input/rule/output schemas plus system log/status/config/deploy data only.</td><td>target</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section id="capabilities">
+    <h2>Capability Roadmap</h2>
+    <table>
+      <thead><tr><th>capability</th><th>owner</th><th>notes</th></tr></thead>
+      <tbody>
+        <tr><td>Safety guardrails</td><td>event rule data</td><td>PreToolUse rules match official input path values, run admitted feature modules, and emit official output data.</td></tr>
+        <tr><td>Compiler feedback</td><td>log data</td><td>Gap, report, trace, explain, and diagnostic are log records.</td></tr>
+        <tr><td>Observability</td><td>log/status data</td><td>Logs and status are runtime data, not side comments.</td></tr>
+        <tr><td>Policy authoring</td><td>user requirement data</td><td>User speaks requirements; compiler creates rule data.</td></tr>
+        <tr><td>Daemon manager</td><td>roadmap</td><td>Only after data ontology and rule schema migration are stable.</td></tr>
+      </tbody>
+    </table>
+  </section>
+    </main>
+  </div>
+</body>
+</html>

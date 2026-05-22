@@ -1,0 +1,69 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "redirect.json",
+  "title": "Bash Redirect Types",
+  "description": "Redirection instructions and descriptors, mapped from command.h r_instruction enum.",
+
+  "definitions": {
+
+    "Redirect": {
+      "type": "object",
+      "description": "A single redirection operation.",
+      "required": ["type", "op"],
+      "properties": {
+        "type": {
+          "const": "Redirect"
+        },
+        "op": {
+          "$ref": "#/definitions/RedirectOp"
+        },
+        "fd": {
+          "type": "integer",
+          "description": "Source file descriptor. Default depends on op (0 for input, 1 for output)."
+        },
+        "target": {
+          "$ref": "word.json#/definitions/Word",
+          "description": "Target filename or fd-as-word."
+        },
+        "hereDoc": {
+          "type": "string",
+          "description": "Body of here-document (for << and <<- ops)."
+        },
+        "hereDocEnd": {
+          "type": "string",
+          "description": "Delimiter word for here-document."
+        },
+        "varAssign": {
+          "type": "boolean",
+          "default": false,
+          "description": "True if {varname} redirect syntax."
+        },
+        "pos": {
+          "$ref": "word.json#/definitions/Position"
+        }
+      },
+      "additionalProperties": false
+    },
+
+    "RedirectOp": {
+      "type": "string",
+      "description": "Redirection operator, mapped from r_instruction enum.",
+      "enum": [
+        ">",
+        "<",
+        ">>",
+        "<<",
+        "<<<",
+        "<<-",
+        "<&",
+        ">&",
+        "<>",
+        ">|",
+        "&>",
+        "&>>",
+        ">&-",
+        "<&-"
+      ]
+    }
+  }
+}

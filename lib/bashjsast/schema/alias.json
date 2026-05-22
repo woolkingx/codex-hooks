@@ -1,0 +1,28 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "alias.json",
+  "title": "Bash Alias",
+  "description": "Alias structure and flags from alias.h.",
+
+  "definitions": {
+
+    "Alias": {
+      "type": "object",
+      "description": "A single alias definition.",
+      "required": ["name", "value"],
+      "properties": {
+        "name":  { "type": "string" },
+        "value": { "type": "string" },
+        "flags": { "type": "integer" }
+      }
+    },
+
+    "AliasFlags": {
+      "type": "object",
+      "properties": {
+        "AL_EXPANDNEXT":    { "const": 1, "description": "Expand next word (trailing space in alias value)" },
+        "AL_BEINGEXPANDED": { "const": 2, "description": "Currently being expanded (prevent recursion)" }
+      }
+    }
+  }
+}

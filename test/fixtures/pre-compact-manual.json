@@ -1,0 +1,9 @@
+{
+  "cwd": "/tmp/codex-hooks",
+  "hook_event_name": "PreCompact",
+  "model": "gpt-5.4",
+  "session_id": "session-1",
+  "transcript_path": null,
+  "trigger": "manual",
+  "turn_id": "turn-1"
+}
