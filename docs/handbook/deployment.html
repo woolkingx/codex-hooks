@@ -63,7 +63,7 @@
         <tr><th>service</th><th>owner data</th><th>write behavior</th></tr>
       </thead>
       <tbody>
-        <tr><td><code>render-hooks</code></td><td><code>deploy.hook_config</code></td><td>Pure generation only. It returns official Codex hooks config and writes nothing. Optional <code>--log</code> injects the JSONL side-channel into the generated hook command.</td></tr>
+        <tr><td><code>render-hooks</code></td><td><code>deploy.hook_config</code></td><td>Pure generation only. It returns official Codex hooks config and writes nothing. The default log side-channel is <code>logs/codex-hooks.jsonl</code>; <code>--log</code> may override it.</td></tr>
         <tr><td><code>doctor</code></td><td><code>deploy.environment</code>, <code>deploy.validation</code>, <code>deploy.doctor</code></td><td>Read-only checks for Node, bin command, policy paths, user-rule sync, Codex config target, schema reachability, and event coverage.</td></tr>
         <tr><td><code>install</code></td><td><code>deploy.installation</code></td><td>Dry-run by default. Real writes require explicit <code>--apply</code> and keep a backup when replacing an existing hooks config.</td></tr>
         <tr><td><code>hook command</code></td><td><code>deploy.environment.cwd</code></td><td>Runtime command must not depend on the process cwd. Repo-owned schemas resolve from module paths; user-selected policy paths resolve from configured command arguments.</td></tr>
@@ -107,7 +107,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"/path/to/codex-hooks/src/adapters/cli.mjs\" hook --rules \"policy/rules\" --log \"hooks.jsonl\"",
+            "command": "node \"/path/to/codex-hooks/src/adapters/cli.mjs\" hook --rules \"policy/rules\" --log \"logs/codex-hooks.jsonl\"",
             "timeout": 30,
             "statusMessage": "codex-hooks PreToolUse"
           }
@@ -125,7 +125,7 @@
         <tr><td><code>PreToolUse</code>, <code>PostToolUse</code>, etc.</td><td>Official Codex hook event names.</td><td>Generated for every event owner registered in <code>src/core/handlers.mjs</code>.</td></tr>
         <tr><td><code>matcher</code></td><td>Codex event matcher string.</td><td>Defaults to <code>*</code>.</td></tr>
         <tr><td><code>type</code></td><td>Hook handler type.</td><td>Always <code>command</code> in V1.</td></tr>
-        <tr><td><code>command</code></td><td>Shell command Codex executes for the hook event.</td><td>Calls <code>codex-hooks hook</code> with the selected <code>--rules</code>, optional <code>--profile</code>, and optional <code>--log</code>.</td></tr>
+        <tr><td><code>command</code></td><td>Shell command Codex executes for the hook event.</td><td>Calls <code>codex-hooks hook</code> with the selected <code>--rules</code>, optional <code>--profile</code>, and project-local <code>--log</code>. Default log path is <code>logs/codex-hooks.jsonl</code>.</td></tr>
         <tr><td><code>timeout</code></td><td>Hook command timeout in seconds.</td><td>Defaults to <code>30</code>.</td></tr>
         <tr><td><code>statusMessage</code></td><td>Status text Codex may show while the hook runs.</td><td>Generated as <code>codex-hooks &lt;EventName&gt;</code>.</td></tr>
       </tbody>
@@ -142,7 +142,7 @@
       <tbody>
         <tr><td><code>hook</code> and <code>cli run</code></td><td>Implemented as layer executor: input validate -> trigger + feature rule data -> output validate -> project to wire.</td><td>Keep schema-boundary tests green; compiler failures are logged as runtime observations.</td></tr>
         <tr><td><code>deploy</code></td><td>Schema root, render-hooks, doctor with policy sync, install plan, and <code>install --apply</code> with atomic write and backup are implemented.</td><td><code>GATE-DEPLOY-01</code>.</td></tr>
-        <tr><td><code>log</code></td><td>Schema root, runtime JSONL writer, redaction, CLI tail, fail-closed error records, and deploy-time <code>--log</code> command injection are implemented.</td><td>Keep log schema validation and CLI log smoke in the observability suite.</td></tr>
+        <tr><td><code>log</code></td><td>Schema root, runtime JSONL writer, redaction, CLI tail, fail-closed error records, deploy-time <code>--log</code> command injection, and gitignored project-local <code>logs/</code> output are implemented.</td><td>Keep log schema validation and CLI log smoke in the observability suite.</td></tr>
         <tr><td><code>status</code></td><td>Schema root and read-only CLI projection from log tail are implemented.</td><td>Keep status schema validation in the observability suite.</td></tr>
         <tr><td><code>public release shell</code></td><td>README, LICENSE, CHANGELOG, CI, package metadata, examples, and collaboration docs are implemented.</td><td><code>GATE-PUBLIC-01</code>.</td></tr>
         <tr><td><code>daemon</code>, <code>admin api</code>, <code>ui</code></td><td>Roadmap only.</td><td>Future gates after V1 deploy and observability are stable.</td></tr>

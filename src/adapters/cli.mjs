@@ -9,7 +9,14 @@ import { toErrorPDU } from '../core/errors.mjs'
 import { applyInstallPlan, createInstallPlan, renderHooksConfig, runDoctor } from '../deploy/index.mjs'
 import { appendLog, buildLogRecord, readLogTail } from '../log/index.mjs'
 import { readStatus } from '../status/index.mjs'
-import { buildUserRuleSyncReport, loadUserPolicy } from '../policy/user.mjs'
+import {
+  buildUserRuleSyncReport,
+  loadUserPolicy,
+  removeUserRequirement,
+  setRequirementEnabled,
+  setUserRequirement,
+  writeUserRuleProjectionSync,
+} from '../policy/user.mjs'
 
 if (fileURLToPath(import.meta.url) === path.resolve(process.argv[1] ?? '')) {
   main(process.argv.slice(2)).catch(error => {
@@ -115,9 +122,19 @@ async function policyCommand(args) {
   if (sub === 'requirements') return requirementsCommand(rest)
   if (sub === 'build') return policyBuildCommand(rest)
   if (sub === 'explain') return policyExplainCommand(rest)
+  if (sub === 'verify-command') return policyVerifyCommand(rest)
   const rulesRoot = flagValue(rest, '--rules') ?? 'policy/rules'
   const profilePath = flagValue(rest, '--profile') ?? undefined
   if (sub === 'compile') {
+    if (args.includes('--write') || flagValue(rest, '--user')) {
+      const result = writeUserRuleProjectionSync({
+        userPath: flagValue(rest, '--user') ?? 'policy/user.json',
+        rulesRoot: flagValue(rest, '--out') ?? rulesRoot,
+      })
+      writeJson(result)
+      if (!result.ok) process.exit(1)
+      return
+    }
     const compiled = loadRules({ rulesRoot, profilePath })
     const out = flagValue(rest, '--out')
     if (out) fs.writeFileSync(out, JSON.stringify(compiled, null, 2))
@@ -168,6 +185,7 @@ function policyExplainCommand(args) {
 function requirementsCommand(args) {
   const [sub, ...rest] = args
   const file = flagValue(rest, '--file') ?? 'policy/user.json'
+  const [id] = rest
   if (sub === 'validate') {
     loadUserPolicy(file)
     writeJson({ ok: true, file })
@@ -183,6 +201,30 @@ function requirementsCommand(args) {
     })
     return
   }
+  if (sub === 'set') {
+    if (!id) { usage(); return }
+    const result = setUserRequirement({
+      userPath: file,
+      id,
+      event: flagValue(rest, '--event') ?? undefined,
+      requirement: flagValue(rest, '--requirement') ?? undefined,
+      enabled: parseOptionalBoolean(flagValue(rest, '--enabled')),
+    })
+    writeJson({ ok: true, file, requirement: result })
+    return
+  }
+  if (sub === 'enable' || sub === 'disable') {
+    if (!id) { usage(); return }
+    const result = setRequirementEnabled({ userPath: file, id, enabled: sub === 'enable' })
+    writeJson({ ok: true, file, requirement: result })
+    return
+  }
+  if (sub === 'remove') {
+    if (!id) { usage(); return }
+    const result = removeUserRequirement({ userPath: file, id })
+    writeJson({ ok: true, file, removed: result })
+    return
+  }
   if (sub === 'sync') {
     const report = buildUserRuleSyncReport({
       userPath: file,
@@ -193,6 +235,37 @@ function requirementsCommand(args) {
     return
   }
   usage()
+}
+
+async function policyVerifyCommand(args) {
+  const event = flagValue(args, '--event') ?? 'pre-tool-use'
+  const command = flagValue(args, '--command')
+  const expected = flagValue(args, '--expect')
+  if (!command || !expected) { usage(); return }
+  if (event !== 'pre-tool-use') {
+    throw new TypeError('policy verify-command currently supports --event pre-tool-use only')
+  }
+  const input = {
+    cwd: process.cwd(),
+    hook_event_name: 'PreToolUse',
+    model: 'gpt-5.4',
+    permission_mode: 'bypassPermissions',
+    session_id: 'policy-verify-command',
+    tool_input: { command },
+    tool_name: 'Bash',
+    tool_use_id: 'policy-verify-tool',
+    transcript_path: null,
+    turn_id: 'policy-verify-turn',
+  }
+  const result = await runHook(input, {
+    rulesRoot: flagValue(args, '--rules') ?? 'policy/rules',
+    profilePath: flagValue(args, '--profile') ?? undefined,
+    failClosed: false,
+  })
+  const actual = decisionFromOutput(result.output)
+  const ok = actual === expected
+  writeJson({ ok, expected, actual, fired_rule_id: result.fired_rule_id, output: result.output })
+  if (!ok) process.exit(1)
 }
 
 async function installCommand(args) {
@@ -217,7 +290,7 @@ function deployOptions(args) {
 
 function logOptions(args) {
   return {
-    logPath: flagValue(args, '--log') ?? 'hooks.jsonl',
+    logPath: flagValue(args, '--log') ?? 'logs/codex-hooks.jsonl',
     tail: Number(flagValue(args, '--tail') ?? 20),
   }
 }
@@ -239,6 +312,21 @@ function parseDryRun(flag, configRuntime) {
   return configRuntime === 'dry-run'
 }
 
+function parseOptionalBoolean(flag) {
+  if (flag == null) return undefined
+  if (flag === 'true') return true
+  if (flag === 'false') return false
+  throw new TypeError('expected boolean flag value true|false')
+}
+
+function decisionFromOutput(output) {
+  if (output == null) return 'allow'
+  if (output.decision === 'block') return 'block'
+  if (output.hookSpecificOutput?.permissionDecision === 'deny') return 'block'
+  if (output.hookSpecificOutput?.decision?.behavior === 'deny') return 'deny'
+  return 'allow'
+}
+
 function writeJson(data) {
   process.stdout.write(`${JSON.stringify(data, null, 2)}\n`)
 }
@@ -249,11 +337,15 @@ function usage() {
     '       codex-hooks run <input.json> [...same flags]',
     '       codex-hooks events',
     '       codex-hooks policy requirements list|validate|sync [--file policy/user.json] [--rules policy/rules]',
+    '       codex-hooks policy requirements set <id> --event <event> --requirement <text> [--enabled true|false] [--file policy/user.json]',
+    '       codex-hooks policy requirements enable|disable|remove <id> [--file policy/user.json]',
     '       codex-hooks policy compile [--rules <p>] [--profile <p>] [--out <file>]',
+    '       codex-hooks policy compile --user policy/user.json --out policy/rules --write',
+    '       codex-hooks policy verify-command --event pre-tool-use --command <text> --expect allow|block|deny [--rules <p>]',
     '       codex-hooks policy build [--requirement <id>]',
     '       codex-hooks policy explain <rule-id> [--rules <p>]',
-    '       codex-hooks logs   [--log hooks.jsonl] [--tail 20]',
-    '       codex-hooks status [--log hooks.jsonl] [--tail 1000]',
+    '       codex-hooks logs   [--log logs/codex-hooks.jsonl] [--tail 20]',
+    '       codex-hooks status [--log logs/codex-hooks.jsonl] [--tail 1000]',
     '       codex-hooks render-hooks [--rules <p>] [--profile <p>] [--log <p>] [--command <cmd>]',
     '       codex-hooks doctor  [--target project|user] [--rules <p>] [--log <p>]',
     '       codex-hooks install [--target project|user] [--rules <p>] [--log <p>] [--apply]',

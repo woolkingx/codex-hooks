@@ -50,8 +50,18 @@ input data --(rule data)--&gt; output data</code></pre>
     <p><code>policy/user.json</code> is authoring data. <code>policy/rules/&lt;event&gt;/&lt;id&gt;.rule.json</code> is runtime rule data. Compiler reports, gaps, traces, explanations, and diagnostics are log information.</p>
   </section>
 
+  <section id="automation-owner-model">
+    <h2>2. Automation Owner Model</h2>
+    <p>The authoring owner is <code>policy/user.json</code>. Runtime rule files are projections and should be generated, updated, or removed by the policy CLI. A normal policy edit should not require an agent to manually coordinate user policy, runtime rule JSON, focused tests, release worktree files, and CI expectations.</p>
+    <pre><code>authoring owner: policy/user.json
+projection owner: policy compiler / sync writer
+runtime reader: src/core/load.mjs over policy/rules
+evidence owner: policy sync report + focused hook probe + CI lane</code></pre>
+    <p>The desired operator loop is: mutate the requirement source, write projections, run a focused runtime probe, then let CI run the broader gate. Manual rule-file edits are allowed for compiler development and emergency debugging, but they must be reconciled through the sync report before deployment.</p>
+  </section>
+
   <section id="user-json">
-    <h2>2. User Requirement Data</h2>
+    <h2>3. User Requirement Data</h2>
     <pre><code>{
   "version": "0.0.0",
   "requirements": [
@@ -67,7 +77,7 @@ input data --(rule data)--&gt; output data</code></pre>
   </section>
 
   <section id="rule-binding">
-    <h2>3. Requirement to Rule Binding</h2>
+    <h2>4. Requirement to Rule Binding</h2>
     <pre><code>requirement id = deny-rm
 requirement event = pre-tool-use
 rule file = policy/rules/pre-tool-use/deny-rm.rule.json</code></pre>
@@ -75,7 +85,7 @@ rule file = policy/rules/pre-tool-use/deny-rm.rule.json</code></pre>
   </section>
 
   <section id="rule-data">
-    <h2>4. Rule Data</h2>
+    <h2>5. Rule Data</h2>
     <p>Rule data is the persistent compiler output because runtime reads it. The canonical shape is <code>trigger</code>, <code>feature</code>, and <code>output</code>. <code>trigger</code> gives flat official input paths and expected values. <code>feature</code> gives module-owned feature data validated by <code>src/features/&lt;feature&gt;/schema.json</code>. <code>output</code> is official event output data.</p>
     <pre><code>{
   "id": "deny-rm",
@@ -106,7 +116,7 @@ rule file = policy/rules/pre-tool-use/deny-rm.rule.json</code></pre>
   </section>
 
   <section id="logs">
-    <h2>5. Compiler and Runtime Logs</h2>
+    <h2>6. Compiler and Runtime Logs</h2>
     <p>The following are log information: <code>compile.gap</code>, compiler report, compile trace, explain, diagnostic, and error. They belong under log data, not under policy artifacts or schema roots.</p>
     <pre><code>{
   "runtime": "compiler",

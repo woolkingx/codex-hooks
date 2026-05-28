@@ -4,7 +4,15 @@ import fs from 'node:fs'
 import path from 'node:path'
 import os from 'node:os'
 import { fileURLToPath } from 'node:url'
-import { buildUserRuleSyncReport, loadUserPolicy, rulePathForRequirement } from '../src/policy/user.mjs'
+import {
+  buildUserRuleSyncReport,
+  loadUserPolicy,
+  removeUserRequirement,
+  rulePathForRequirement,
+  setRequirementEnabled,
+  setUserRequirement,
+  writeUserRuleProjectionSync,
+} from '../src/policy/user.mjs'
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 
@@ -56,10 +64,11 @@ function validRule(id, event = 'pre-tool-use') {
 test('repo policy/user.json validates and is synchronized with bundled rules', () => {
   const policy = loadUserPolicy('policy/user.json')
   assert.equal(policy.version, '0.0.0')
-  assert.ok(policy.requirements.length >= 13)
+  assert.equal(policy.requirements.some(requirement => requirement.id === 'deny-sed-awk'), false)
   const report = buildUserRuleSyncReport({ userPath: 'policy/user.json', rulesRoot: 'policy/rules' })
   assert.equal(report.ok, true)
   assert.equal(report.orphan_rules.length, 0)
+  assert.equal(report.requirements.length, policy.requirements.length)
   assert.equal(report.requirements.length, report.rules.length)
 })
 
@@ -117,6 +126,69 @@ test('missing file throws', () => {
 test('rule path is derived from requirement id and event', () => {
   const rulePath = rulePathForRequirement({ id: 'deny-rm', event: 'pre-tool-use' })
   assert.equal(rulePath, 'policy/rules/pre-tool-use/deny-rm.rule.json')
+})
+
+test('setUserRequirement adds and updates requirement data', () => {
+  const rel = writeTemp('user.json', { version: '0.0.1', requirements: [] })
+  setUserRequirement({
+    userPath: rel,
+    id: 'deny-test',
+    event: 'pre-tool-use',
+    requirement: 'Block test command.',
+  })
+  let policy = loadUserPolicy(rel)
+  assert.deepEqual(policy.requirements, [
+    { id: 'deny-test', event: 'pre-tool-use', requirement: 'Block test command.' },
+  ])
+  setUserRequirement({
+    userPath: rel,
+    id: 'deny-test',
+    event: 'post-tool-use',
+    requirement: 'Updated requirement.',
+    enabled: false,
+  })
+  policy = loadUserPolicy(rel)
+  assert.deepEqual(policy.requirements, [
+    { id: 'deny-test', event: 'post-tool-use', requirement: 'Updated requirement.', enabled: false },
+  ])
+})
+
+test('setRequirementEnabled changes only enabled state', () => {
+  const rel = writeTemp('user.json', {
+    version: '0.0.1',
+    requirements: [{ id: 'deny-test', event: 'pre-tool-use', requirement: 'Block test command.' }],
+  })
+  setRequirementEnabled({ userPath: rel, id: 'deny-test', enabled: false })
+  let policy = loadUserPolicy(rel)
+  assert.equal(policy.requirements[0].enabled, false)
+  assert.equal(policy.requirements[0].requirement, 'Block test command.')
+  setRequirementEnabled({ userPath: rel, id: 'deny-test', enabled: true })
+  policy = loadUserPolicy(rel)
+  assert.equal(policy.requirements[0].enabled, true)
+})
+
+test('setRequirementEnabled rejects missing id', () => {
+  const rel = writeTemp('user.json', { version: '0.0.1', requirements: [] })
+  assert.throws(() => setRequirementEnabled({ userPath: rel, id: 'missing', enabled: false }), /requirement not found: missing/)
+})
+
+test('removeUserRequirement removes one requirement', () => {
+  const rel = writeTemp('user.json', {
+    version: '0.0.1',
+    requirements: [
+      { id: 'keep-rule', event: 'pre-tool-use', requirement: 'Keep.' },
+      { id: 'remove-rule', event: 'pre-tool-use', requirement: 'Remove.' },
+    ],
+  })
+  const removed = removeUserRequirement({ userPath: rel, id: 'remove-rule' })
+  assert.equal(removed.id, 'remove-rule')
+  const policy = loadUserPolicy(rel)
+  assert.deepEqual(policy.requirements.map(item => item.id), ['keep-rule'])
+})
+
+test('removeUserRequirement rejects missing id', () => {
+  const rel = writeTemp('user.json', { version: '0.0.1', requirements: [] })
+  assert.throws(() => removeUserRequirement({ userPath: rel, id: 'missing' }), /requirement not found: missing/)
 })
 
 test('sync report detects missing rule file', () => {
@@ -219,4 +291,38 @@ test('sync report detects enabled mismatch', () => {
   assert.equal(report.requirements[0].state, 'enabled-mismatch')
   assert.equal(report.requirements[0].requirement_enabled, false)
   assert.equal(report.requirements[0].rule_enabled, true)
+})
+
+test('writeUserRuleProjectionSync updates enabled projection', () => {
+  const rel = writeTemp('user.json', {
+    version: '0.0.1',
+    requirements: [{ id: 'disabled-rule', event: 'pre-tool-use', enabled: false, requirement: 'x' }],
+  })
+  const rulesRoot = mkRulesRoot()
+  writeRule(rulesRoot, 'pre-tool-use', 'disabled-rule', { ...validRule('disabled-rule'), enabled: true })
+  const result = writeUserRuleProjectionSync({ userPath: rel, rulesRoot })
+  assert.equal(result.ok, true)
+  assert.deepEqual(result.updated_rules.map(item => item.replaceAll('\\', '/')).map(item => item.endsWith('/pre-tool-use/disabled-rule.rule.json')), [true])
+  const report = buildUserRuleSyncReport({ userPath: rel, rulesRoot })
+  assert.equal(report.ok, true)
+})
+
+test('writeUserRuleProjectionSync removes orphan rule files', () => {
+  const rel = writeTemp('user.json', { version: '0.0.1', requirements: [] })
+  const rulesRoot = mkRulesRoot()
+  writeRule(rulesRoot, 'pre-tool-use', 'orphan-rule', validRule('orphan-rule'))
+  const result = writeUserRuleProjectionSync({ userPath: rel, rulesRoot })
+  assert.equal(result.ok, true)
+  assert.equal(result.removed_orphans.length, 1)
+  assert.equal(fs.existsSync(path.join(ROOT, rulesRoot, 'pre-tool-use', 'orphan-rule.rule.json')), false)
+})
+
+test('writeUserRuleProjectionSync does not invent missing rules', () => {
+  const rel = writeTemp('user.json', {
+    version: '0.0.1',
+    requirements: [{ id: 'missing-rule', event: 'pre-tool-use', requirement: 'Missing rule.' }],
+  })
+  const result = writeUserRuleProjectionSync({ userPath: rel, rulesRoot: mkRulesRoot() })
+  assert.equal(result.ok, false)
+  assert.equal(result.report.requirements[0].state, 'missing')
 })

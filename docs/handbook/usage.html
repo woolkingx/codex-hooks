@@ -57,8 +57,8 @@
       <thead><tr><th>user says</th><th>Codex action</th><th>evidence</th></tr></thead>
       <tbody>
         <tr><td>Install codex-hooks for this project.</td><td>Run deploy doctor, render the hook config, dry-run install, then apply only when the user asked for install.</td><td><code>doctor</code> pass or warnings, destination path, backup path if written.</td></tr>
-        <tr><td>Add a rule: block <code>rm -rf</code>.</td><td>Add or update one <code>policy/user.json</code> requirement and one matching <code>policy/rules/&lt;event&gt;/&lt;id&gt;.rule.json</code>.</td><td>policy sync pass, rule explain output, hook fixture smoke.</td></tr>
-        <tr><td>Disable the sudo rule.</td><td>Change user-owned <code>enabled</code> state and the matching runtime rule projection.</td><td>policy sync pass and rule no longer fires.</td></tr>
+        <tr><td>Add a rule: block <code>rm -rf</code>.</td><td>Add or update one <code>policy/user.json</code> requirement, then let the policy CLI write the matching runtime rule projection.</td><td>policy sync pass, rule explain output, focused hook probe.</td></tr>
+        <tr><td>Disable the sudo rule.</td><td>Change user-owned <code>enabled</code> state through the policy CLI and regenerate the runtime projection.</td><td>policy sync pass and rule no longer fires.</td></tr>
         <tr><td>Add a feature that detects another Bash pattern.</td><td>Find the owning handbook chapter, feature module, schema, event rule schema ref, tests, and rollout gate before changing code.</td><td>updated handbook or plan when needed, focused tests, full verify when behavior changes.</td></tr>
         <tr><td>Show hook status.</td><td>Read log/status data without changing policy or hooks.</td><td><code>logs</code> or <code>status</code> output.</td></tr>
       </tbody>
@@ -72,9 +72,9 @@
       <li>Read <code>CLAUDE.md</code>, <code>docs/handbook/index.html</code>, and the owning chapters: <code>policy.html</code>, <code>event-model.html</code>, <code>schema-tree.html</code>, <code>deployment.html</code>, and this chapter.</li>
       <li>Identify the event owner and official input/output schema. For most command guardrails, start with <code>pre-tool-use</code>.</li>
       <li>For rule behavior, update user requirement data first: <code>policy/user.json</code>.</li>
-      <li>Update the matching runtime rule file: <code>policy/rules/&lt;event&gt;/&lt;id&gt;.rule.json</code>. The rule id is the filename.</li>
+      <li>Use the policy CLI or compiler to write the matching runtime rule projection: <code>policy/rules/&lt;event&gt;/&lt;id&gt;.rule.json</code>. The rule id is the filename.</li>
       <li>For feature behavior, identify the owning feature module, schema, handler, tests, and handbook gate before editing code.</li>
-      <li>Run policy sync, rule explain, hook fixture smoke, focused tests, and full verification when behavior changes.</li>
+      <li>Run policy sync, rule explain, a focused hook probe for the changed behavior, and the appropriate CI lane.</li>
       <li>For install requests, run doctor, render or dry-run install, then apply only when requested.</li>
       <li>Report changed files, verification evidence, and remaining warnings.</li>
     </ol>
@@ -82,35 +82,42 @@
 
   <section id="agent-tools">
     <h2>4. Codex Tool Commands</h2>
-    <p>These commands are the tool surface Codex uses while executing the user's request. They are not the primary product UX.</p>
+    <p>These commands are the tool surface Codex uses while executing the user's request. They are not the primary product UX. Each command should expose an owner operation; pipeline scripts may compose commands, but should not edit owner files directly.</p>
+    <p>Current commands:</p>
     <pre><code>codex-hooks policy requirements list --file policy/user.json
 codex-hooks policy requirements validate --file policy/user.json
-codex-hooks policy requirements sync --file policy/user.json --rules policy/rules</code></pre>
+codex-hooks policy requirements sync --file policy/user.json --rules policy/rules
+codex-hooks policy requirements set deny-example --event pre-tool-use --requirement "Block example command."
+codex-hooks policy requirements disable deny-example
+codex-hooks policy requirements remove deny-example
+codex-hooks policy compile --user policy/user.json --out policy/rules --write</code></pre>
     <p>Explain shows which user requirement produced a runtime rule and which trigger paths/features it uses:</p>
     <pre><code>codex-hooks policy explain deny-rm --rules policy/rules</code></pre>
     <p>Run a hook payload through the same runtime path Codex hooks use:</p>
     <pre><code>codex-hooks run test/fixtures/pre-tool-use-bash-rm.json --rules policy/rules</code></pre>
+    <p>For one-command policy regressions, use a focused probe:</p>
+    <pre><code>codex-hooks policy verify-command --event pre-tool-use --command "sed -n '1,20p' file 2&gt;/dev/null" --expect allow</code></pre>
   </section>
 
   <section id="install-flow">
     <h2>5. Install Flow</h2>
     <p>When the user asks Codex to install codex-hooks, Codex checks before writing. Render prints the Codex <code>hooks.json</code> payload and writes nothing. See <code>deployment.html#codex-hooks-json</code> for the Codex hooks config shape and paths.</p>
-    <pre><code>codex-hooks render-hooks --target project --rules policy/rules --log hooks.jsonl</code></pre>
+    <pre><code>codex-hooks render-hooks --target project --rules policy/rules</code></pre>
     <p>Doctor checks the local environment, policy sync, schema reachability, and event owner coverage:</p>
     <pre><code>codex-hooks doctor --target project --rules policy/rules</code></pre>
     <p>Install without <code>--apply</code> returns a dry-run deploy record. Install with <code>--apply</code> writes <code>.codex/hooks.json</code> for the current git project, or <code>$CODEX_HOME/hooks.json</code> for the user target. Codex must report the destination and backup behavior.</p>
-    <pre><code>codex-hooks install --target project --rules policy/rules --log hooks.jsonl
-codex-hooks install --target project --rules policy/rules --log hooks.jsonl --apply
-codex-hooks install --target user --rules policy/rules --log hooks.jsonl --apply</code></pre>
+    <pre><code>codex-hooks install --target project --rules policy/rules
+codex-hooks install --target project --rules policy/rules --apply
+codex-hooks install --target user --rules policy/rules --apply</code></pre>
   </section>
 
   <section id="logging">
     <h2>6. Logs and Status</h2>
-    <p>Hook stdout must contain only official Codex hook output. Operational observations go to JSONL logs when a log path is configured.</p>
-    <pre><code>codex-hooks run test/fixtures/pre-tool-use-bash-rm.json --rules policy/rules --log hooks.jsonl
-codex-hooks logs --log hooks.jsonl --tail 20
-codex-hooks status --log hooks.jsonl --tail 1000</code></pre>
-    <p>Generated <code>hooks.json</code> includes <code>--log</code> when the install or render command receives a log path. Fail-closed executor errors are recorded as log error PDU data while hook stdout remains official Codex output only.</p>
+    <p>Hook stdout must contain only official Codex hook output. Operational observations go to gitignored project-local JSONL logs by default.</p>
+    <pre><code>codex-hooks run test/fixtures/pre-tool-use-bash-rm.json --rules policy/rules --log logs/codex-hooks.jsonl
+codex-hooks logs --log logs/codex-hooks.jsonl --tail 20
+codex-hooks status --log logs/codex-hooks.jsonl --tail 1000</code></pre>
+    <p>Generated <code>hooks.json</code> includes <code>--log "logs/codex-hooks.jsonl"</code> by default; an explicit <code>--log</code> may override it. Fail-closed executor errors are recorded as log error PDU data while hook stdout remains official Codex output only.</p>
   </section>
 
   <section id="safety">
@@ -123,6 +130,7 @@ codex-hooks status --log hooks.jsonl --tail 1000</code></pre>
         <tr><td><code>install</code> dry-run first</td><td>The deploy record shows exactly where hooks would be written before mutation.</td></tr>
         <tr><td>official output only</td><td>Codex hook stdout must stay compatible with upstream API schemas.</td></tr>
         <tr><td>rule sync gate</td><td><code>policy/user.json</code> and <code>policy/rules</code> must agree before deployment.</td></tr>
+        <tr><td>focused policy probe</td><td>The original command or fixture that motivated the policy change must show the expected decision before broad verification.</td></tr>
       </tbody>
     </table>
   </section>

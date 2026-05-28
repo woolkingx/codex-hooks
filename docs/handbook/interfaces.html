@@ -52,10 +52,30 @@
       <tbody>
         <tr><td><code>hook</code></td><td class="status">required</td><td>Read one official Codex hook JSON object from stdin and write one official Codex hook JSON output to stdout.</td></tr>
         <tr><td><code>cli</code></td><td class="status">required</td><td>Run fixtures through the same schema-transition path. CLI must not invent hook semantics or emit non-official fields in hook wire output.</td></tr>
-        <tr><td><code>policy compiler</code></td><td class="status">target</td><td>Compile <code>policy/user.json</code> requirements into one rule file per id; write feedback to logs.</td></tr>
+        <tr><td><code>policy owner cli</code></td><td class="status">implemented</td><td>Mutate <code>policy/user.json</code>, reconcile runtime rule projections, and run focused command probes through owner APIs.</td></tr>
+        <tr><td><code>semantic policy compiler</code></td><td class="status">target</td><td>Create new rule logic from natural-language requirements and write compiler feedback to logs.</td></tr>
         <tr><td><code>deploy cli</code></td><td class="status">implemented</td><td>Render official Codex hook config; run deployment doctor checks; produce a dry-run install plan, or write <code>hooks.json</code> with backup when <code>--apply</code> is set.</td></tr>
         <tr><td><code>daemon</code></td><td class="status">roadmap</td><td>Future Unix socket manager using the same core for hot reload, shared state, and central management.</td></tr>
         <tr><td><code>admin api</code></td><td class="status">roadmap</td><td>Future MCP or local HTTP API for policy CRUD, status, logs, and policy packs.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section id="owner-interfaces">
+    <h2>Owner Interface Definition</h2>
+    <pre><code>owner owns truth
+CLI exposes owner operations
+pipeline composes owner operations
+CI/CD proves the composed path</code></pre>
+    <p>CLI commands are stable interfaces over owner modules. They may orchestrate owner APIs and collect evidence, but they must not become a hidden service layer. If logic belongs to policy, compiler, runtime, deploy, release, log, or status, the CLI calls that owner instead of reimplementing it.</p>
+    <table>
+      <thead><tr><th>owner</th><th>CLI interface</th><th>pipeline role</th></tr></thead>
+      <tbody>
+        <tr><td>policy requirement owner</td><td><code>policy requirements *</code></td><td>mutate and validate <code>policy/user.json</code></td></tr>
+        <tr><td>compiler / projection owner</td><td><code>policy compile --write</code></td><td>write runtime rule projections from authoring truth</td></tr>
+        <tr><td>runtime owner</td><td><code>run</code>, <code>policy verify-command</code></td><td>prove command behavior through the real hook path</td></tr>
+        <tr><td>deploy owner</td><td><code>doctor</code>, <code>render-hooks</code>, <code>install</code></td><td>prove or apply hook configuration with dry-run first</td></tr>
+        <tr><td>evidence owner</td><td><code>logs</code>, <code>status</code></td><td>read observations without mutating policy or runtime truth</td></tr>
       </tbody>
     </table>
   </section>
@@ -67,23 +87,42 @@
                               [--dry-run true|false]
 codex-hooks run input.json    same flags
 codex-hooks events            list registered event kebab names
+codex-hooks policy build      [--requirement id]
+codex-hooks policy requirements list|validate|sync [--file path] [--rules path]
+codex-hooks policy requirements set     id --event pre-tool-use --requirement text [--enabled true|false] [--file path]
+codex-hooks policy requirements enable  id [--file path]
+codex-hooks policy requirements disable id [--file path]
+codex-hooks policy requirements remove  id [--file path]
 codex-hooks policy compile    [--rules path] [--profile path] [--out file]
-codex-hooks policy lint       [--rules path] [--profile path]
+codex-hooks policy compile    --user policy/user.json --out policy/rules --write
 codex-hooks policy explain    rule-id [--rules path] [--profile path]
-codex-hooks policy test       rule-id --fixture event.json [--rules path]
-codex-hooks logs              [--log hooks.jsonl] [--tail 20]
-codex-hooks status            [--log hooks.jsonl] [--tail 1000]
+codex-hooks policy verify-command --event pre-tool-use --command text --expect allow|block|deny [--rules path]
+codex-hooks logs              [--log logs/codex-hooks.jsonl] [--tail 20]
+codex-hooks status            [--log logs/codex-hooks.jsonl] [--tail 1000]
 codex-hooks render-hooks      [--rules path] [--profile path] [--log path] [--command cmd]
 codex-hooks doctor            [--target project|user] [--rules path]
 codex-hooks install           [--target project|user] [--rules path] [--log path] [--apply]</code></pre>
   </section>
 
-  <section id="target-cli">
-    <h2>Target Compiler CLI</h2>
+  <section id="policy-owner-cli">
+    <h2>Policy Owner CLI</h2>
     <pre><code>codex-hooks policy requirements list|validate [--file policy/user.json]
-codex-hooks policy compile    [--user policy/user.json] [--out policy/rules]
-codex-hooks logs              [--log hooks.jsonl] [--tail 20]</code></pre>
-    <p>These commands are architecture targets. Compiler failure, gap, trace, explain, and diagnostic output belongs to log data.</p>
+codex-hooks policy requirements set     id --event pre-tool-use --requirement text [--enabled true|false]
+codex-hooks policy requirements enable  id
+codex-hooks policy requirements disable id
+codex-hooks policy requirements remove  id
+codex-hooks policy compile              --user policy/user.json --out policy/rules --write
+codex-hooks policy verify-command       --event pre-tool-use --command text --expect allow|block|deny
+codex-hooks logs                        [--log logs/codex-hooks.jsonl] [--tail 20]</code></pre>
+    <p>These commands are implemented owner interfaces. The CLI mutates authoring data first, writes runtime projections through the policy owner, and verifies through the same runtime path used by hooks. Semantic compiler failure, gap, trace, explain, and diagnostic output belongs to log data.</p>
+  </section>
+
+  <section id="ci-lanes">
+    <h2>CI Lanes</h2>
+    <pre><code>npm run policy:check   # validate policy/user.json and user-rule sync
+npm run policy:smoke   # focused hook probes for policy regressions
+npm run verify         # handbook, stale runtime, sync, full tests, smoke</code></pre>
+    <p>The fast lane proves policy drift and the original symptom. The full lane proves release readiness. This split keeps small policy edits from turning into manual multi-file audits while preserving the fail-closed release gate.</p>
   </section>
 
   <section id="v1-runtime">

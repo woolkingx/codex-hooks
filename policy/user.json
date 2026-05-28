@@ -68,12 +68,6 @@
       "requirement": "Block rsync --delete."
     },
     {
-      "id": "deny-sed-awk",
-      "event": "pre-tool-use",
-      "enabled": true,
-      "requirement": "Block sed -i and sed or awk with output redirection; use Edit instead."
-    },
-    {
       "id": "deny-sudo",
       "event": "pre-tool-use",
       "enabled": true,

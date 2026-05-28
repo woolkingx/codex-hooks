@@ -48,20 +48,16 @@ describe('policy-rules integration', () => {
     })
   })
 
-  describe('deny-sed-awk', () => {
-    it('fires on sed -i', () => {
-      const result = applyRule(readRule('deny-sed-awk'), sdu("sed -i 's/foo/bar/' file.txt"))
+  describe('deny-echo-write', () => {
+    it('fires on printf stdout file redirection', () => {
+      const result = applyRule(readRule('deny-echo-write'), sdu("printf 'x' > file"))
       assert.ok(result && result.decision === 'block')
     })
 
-    it('fires on awk with redirect', () => {
-      const result = applyRule(readRule('deny-sed-awk'), sdu("awk '{print}' file > out.txt"))
-      assert.ok(result && result.decision === 'block')
-    })
-
-    it('does not fire on plain awk', () => {
-      const result = applyRule(readRule('deny-sed-awk'), sdu("awk '{print $1}' file.txt"))
+    it('does not fire on printf stderr redirection to /dev/null', () => {
+      const result = applyRule(readRule('deny-echo-write'), sdu("printf 'x' 2>/dev/null"))
       assert.strictEqual(result, null)
     })
   })
+
 })

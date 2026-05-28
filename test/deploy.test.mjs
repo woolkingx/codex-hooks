@@ -10,6 +10,14 @@ test('render-hooks emits every official event owner', () => {
   assert.deepEqual(Object.keys(config.hooks).sort(), expected)
 })
 
+test('render-hooks writes project-local ignored logs by default', () => {
+  const config = renderHooksConfig({ rulesRoot: 'policy/rules' })
+  for (const groups of Object.values(config.hooks)) {
+    const command = groups[0].hooks[0].command
+    assert.match(command, / --log "logs\/codex-hooks\.jsonl"/)
+  }
+})
+
 test('render-hooks injects log path into every generated command when configured', () => {
   const config = renderHooksConfig({ rulesRoot: 'policy/rules', logPath: 'hooks.jsonl' })
   for (const groups of Object.values(config.hooks)) {

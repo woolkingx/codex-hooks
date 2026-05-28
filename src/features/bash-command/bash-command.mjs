@@ -66,7 +66,15 @@ function matchFlags(parsed, spec) {
 }
 
 function writesToFile(parsed) {
-  return parsed.writes().length > 0 || parsed.simpleCommands().some(cmd => ['tee', 'dd'].includes(cmd.name))
+  return parsed.simpleCommands().some(cmd => {
+    if (['tee', 'dd'].includes(cmd.name)) return true
+    return (cmd.writes ?? []).some(write => isFileContentWrite(write))
+  })
+}
+
+function isFileContentWrite(write) {
+  if (!write || write.target === '/dev/null') return false
+  return write.fd === 1 || write.op === '&>' || write.op === '&>>'
 }
 
 function simpleCommands(parsed, name) {

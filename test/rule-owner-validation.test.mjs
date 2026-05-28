@@ -54,3 +54,19 @@ test('canonical policy/rules still loads under runtime owner validation', async 
   assert.ok(result, 'runHook returned a result')
   assert.equal(result.fired_rule_id, 'deny-rm')
 })
+
+test('canonical policy/rules does not block sed stderr redirection', async () => {
+  const input = structuredClone(preToolUseFixture)
+  input.tool_input.command = "sed -n '1,20p' file 2>/dev/null"
+  const result = await runHook(input, { rulesRoot: 'policy/rules', failClosed: false })
+  assert.equal(result.fired_rule_id, null)
+  assert.equal(result.output, null)
+})
+
+test('canonical policy/rules does not block printf stderr redirection', async () => {
+  const input = structuredClone(preToolUseFixture)
+  input.tool_input.command = "printf 'x' 2>/dev/null"
+  const result = await runHook(input, { rulesRoot: 'policy/rules', failClosed: false })
+  assert.equal(result.fired_rule_id, null)
+  assert.equal(result.output, null)
+})

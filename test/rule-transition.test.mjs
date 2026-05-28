@@ -18,7 +18,7 @@ describe('applyRule', () => {
 
   it('supports feature any/all composition', () => {
     const rule = {
-      id: 'deny-sed-awk',
+      id: 'composition-sample',
       event: 'pre-tool-use',
       trigger: { '$.tool_name': 'Bash' },
       feature: {

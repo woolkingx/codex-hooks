@@ -6,6 +6,8 @@ import path from 'node:path'
 import { spawnSync } from 'node:child_process'
 import { buildLogRecord, appendLog, readLogTail } from '../src/log/index.mjs'
 
+const CLI = new URL('../src/adapters/cli.mjs', import.meta.url).pathname
+
 const REQUIRED_FIELDS = [
   'trace_id', 'event_id', 'event_name', 'fired_rule_id',
   'duration_ms', 'created_at', 'input', 'output', 'error',
@@ -94,4 +96,22 @@ test('cli run — fail-closed executor error is written to JSONL log', () => {
   assert.equal(entry.event_name, 'pre-tool-use')
   assert.ok(entry.error)
   assert.equal(entry.error.layer, 'executor')
+})
+
+test('cli logs reads project-local logs/codex-hooks.jsonl by default', () => {
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'codex-hooks-log-default-'))
+  const logPath = path.join(tmp, 'logs', 'codex-hooks.jsonl')
+  appendLog(buildLogRecord({ hook_event_name: 'pre-tool-use' }, 'pre-tool-use', 'id-1', 'rule-1', null, {}), { logPath })
+
+  const result = spawnSync(process.execPath, [
+    CLI,
+    'logs',
+    '--tail',
+    '1',
+  ], { cwd: tmp, encoding: 'utf8' })
+
+  assert.equal(result.status, 0, result.stderr)
+  const entries = JSON.parse(result.stdout)
+  assert.equal(entries.length, 1)
+  assert.equal(entries[0].fired_rule_id, 'rule-1')
 })

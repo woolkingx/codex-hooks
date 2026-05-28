@@ -98,6 +98,16 @@ trace / explain / diagnostic schema root</code></pre>
   -&gt; compiler observations written as log data</code></pre>
     <p>If the compiler cannot produce rule data, it writes a log record such as <code>compile.gap</code> and exits non-zero. It does not create a separate gap data root.</p>
   </section>
+
+  <section id="owner-interface">
+    <h2>6. Owner Interface Topology</h2>
+    <pre><code>owner module owns truth
+  -&gt; owner API mutates or reads owned artifact
+  -&gt; CLI command exposes that owner API
+  -&gt; pipeline composes CLI commands
+  -&gt; evidence returns to the owning gate</code></pre>
+    <p>The CLI is an interface to owners, not a new owner. A pipeline may call CLI commands in order, but it must not mutate <code>policy/user.json</code>, rule files, deploy config, logs, or release projections by shell-side file tricks. If a pipeline needs a new operation, add the owner API first, then expose it through CLI.</p>
+  </section>
     </main>
   </div>
 </body>

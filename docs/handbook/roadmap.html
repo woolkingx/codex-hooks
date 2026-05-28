@@ -71,6 +71,30 @@
       </tbody>
     </table>
   </section>
+
+  <section id="policy-automation-optimization">
+    <h2>Policy Automation Optimization</h2>
+    <p>The current architecture has the right source-of-truth split but an expensive operator path. The durable owner is still <code>policy/user.json</code>; <code>policy/rules/&lt;event&gt;/&lt;id&gt;.rule.json</code> remains a compiled runtime projection. The optimization is to remove manual projection work from humans and agents.</p>
+    <pre><code>policy/user.json
+  -&gt; policy owner API
+  -&gt; owner-interface CLI
+  -&gt; compiler / sync writer
+  -&gt; focused policy probe
+  -&gt; CI/CD pipeline
+  -&gt; release projection</code></pre>
+    <p>Borrowed operating ideas from <code>mcp-claude-hooks</code> should be adapted, not copied. Useful ideas are a single command surface for external operations, adapters as format converters, schema-backed rule CRUD, hot reload as a later control-plane feature, and test-mode probes that avoid self-blocking while validating deny rules. The rule-file-first model should not be copied because <code>codex-hooks</code> deliberately keeps user requirement data as the authoring owner and official Codex schemas as the output boundary.</p>
+    <table>
+      <thead><tr><th>optimization</th><th>implemented contract</th><th>acceptance gate</th></tr></thead>
+      <tbody>
+        <tr><td>Policy mutation CLI</td><td><code>requirements set|enable|disable|remove</code> mutates only <code>policy/user.json</code>.</td><td>Mutation validates user-policy schema and preserves requirement id uniqueness.</td></tr>
+        <tr><td>Projection writer</td><td><code>policy compile --write</code> updates matching runtime rule <code>enabled</code> state and removes orphan rule files; semantic rule creation remains compiler-roadmap work.</td><td>Sync report is green with no missing or orphan rules.</td></tr>
+        <tr><td>Focused probe</td><td><code>policy verify-command</code> runs one synthetic hook payload through the real runtime path.</td><td>Expected allow/block/deny result is asserted before broad tests run.</td></tr>
+        <tr><td>Owner interface CLI</td><td>Each command calls the owning module API instead of editing files or reimplementing owner logic.</td><td>CLI behavior can be tested at the owner boundary and reused by pipelines.</td></tr>
+        <tr><td>CI/CD lanes</td><td><code>policy:check</code>, <code>policy:smoke</code>, and <code>verify</code> separate fast policy drift checks from release-grade verification.</td><td>Small policy edits no longer require manual multi-file reasoning.</td></tr>
+        <tr><td>Release projection</td><td>Release worktree receives generated artifacts from the verified source worktree.</td><td>No hand-edited divergence between development and release policy files.</td></tr>
+      </tbody>
+    </table>
+  </section>
     </main>
   </div>
 </body>

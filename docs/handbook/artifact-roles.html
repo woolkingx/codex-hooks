@@ -62,6 +62,8 @@
         <tr><td><code>policy/rules/&lt;event&gt;/*.rule.json</code></td><td>runtime rule data</td><td>Trigger + feature + output declarations.</td><td>User prose, compiler logs, diagnostics, or hidden service behavior.</td></tr>
                 <tr><td><code>src/events/&lt;event&gt;/</code></td><td>layer executor</td><td>SDU validation, PCI execution, next-PDU validation, projection.</td><td>Policy authoring, model calls, cross-event ownership.</td></tr>
         <tr><td><code>src/core/transition.mjs</code></td><td>trigger executor</td><td>Executes trigger checks and admitted feature modules over official input data.</td><td>A schema root, event, or data owner.</td></tr>
+        <tr><td><code>src/adapters/cli.mjs</code></td><td>owner interface adapter</td><td>Expose owner operations as commands and collect evidence from owner APIs.</td><td>Hidden policy logic, runtime truth, deploy semantics, or a second service layer.</td></tr>
+        <tr><td><code>package.json</code> scripts / CI</td><td>pipeline</td><td>Compose owner interface commands into repeatable checks and release gates.</td><td>Own data shape, mutate artifacts directly, or bypass owner APIs.</td></tr>
         <tr><td><code>skills/codex-hooks/</code></td><td>compiler skill</td><td>Model-side authoring procedure from requirement to rule data plus log records.</td><td>Hot-path runtime truth.</td></tr>
         <tr><td><code>test.mjs</code></td><td>proof</td><td>Owner-local acceptance evidence.</td><td>Second runtime or replacement source of truth.</td></tr>
       </tbody>
@@ -78,7 +80,9 @@
     <pre><code>CLAUDE.md owns architecture
 skill owns product doctrine
 schema owns hidden runtime behavior
-runtime code repairs missing schema truth</code></pre>
+runtime code repairs missing schema truth
+CLI owns business truth
+pipeline mutates files behind owners</code></pre>
     <p>This makes the actor own truth. codex-hooks keeps truth in handbook and schemas, then projects it into plans, skills, policy files, runtime code, and tests.</p>
   </section>
 
