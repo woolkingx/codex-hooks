@@ -5,9 +5,28 @@ import path from 'node:path'
 
 const PROBE = `
 import fs from 'node:fs'
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 let count = 0
+const reads = []
+const root = path.resolve('.')
 const orig = fs.readFileSync
-fs.readFileSync = function (...args) { count++; return orig.apply(this, args) }
+function normalizeReadTarget(target) {
+  const value = String(target)
+  return value.startsWith('file:') ? fileURLToPath(value) : path.resolve(value)
+}
+function runtimeDataRead(file) {
+  const relative = path.relative(root, file).split(path.sep).join('/')
+  return relative.startsWith('schema/')
+    || relative.startsWith('policy/')
+    || relative === '.codex-hooks.json'
+    || relative === '.codex/codex-hooks.json'
+}
+fs.readFileSync = function (...args) {
+  count++
+  reads.push(normalizeReadTarget(args[0]))
+  return orig.apply(this, args)
+}
 const { runHook } = await import('./src/core/run.mjs')
 const input = {
   hook_event_name: 'PreToolUse',
@@ -16,16 +35,28 @@ const input = {
   tool_input: { command: 'ls' }, tool_name: 'Bash', tool_use_id: 'u',
 }
 await runHook(input, { rules: [] })
-process.stdout.write(JSON.stringify({ count }))
+const dataReads = reads
+  .filter(runtimeDataRead)
+  .map(file => path.relative(root, file).split(path.sep).join('/'))
+process.stdout.write(JSON.stringify({ count, dataReads }))
 `
 
-test('cold-start file read count stays bounded for a single event', () => {
+function expectedRuntimeDataReads(eventName) {
+  const generated = `schema/api/openai-codex/generated/${eventName}.command`
+  return [
+    'schema/codex-hooks.schema.json',
+    `${generated}.input.schema.json`,
+    `${generated}.output.schema.json`,
+  ]
+}
+
+test('cold-start runtime data reads stay within event schema surface', () => {
   const result = spawnSync('node', ['--input-type=module', '-e', PROBE], {
     cwd: path.resolve('.'),
     encoding: 'utf8',
   })
   assert.equal(result.status, 0, `probe failed: ${result.stderr}`)
-  const { count } = JSON.parse(result.stdout)
-  assert.ok(count <= 16,
-    `cold-start read ${count} files; expected at most 16 for a single event invocation`)
+  const { count, dataReads } = JSON.parse(result.stdout)
+  assert.deepEqual(dataReads, expectedRuntimeDataReads('pre-tool-use'),
+    `cold-start read ${count} files; runtime data reads escaped the event schema surface`)
 })
