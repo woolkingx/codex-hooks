@@ -1,19 +1,17 @@
 stages:
   - verify
   - build
+  - approve
   - publish
 
 verify_release_projection:
   stage: verify
-  image: node:24-alpine
   script:
     - node --version
-    - npm ci
     - npm run verify
 
 generate_wiki_projection:
   stage: build
-  image: python:3.12-alpine
   script:
     - python3 tools/handbook_to_wiki.py --root . --out .build/wiki
     - test -f .build/wiki/gitlab/home.md
@@ -27,16 +25,23 @@ generate_wiki_projection:
       - .build/wiki/
     expire_in: 7 days
 
+approve_public_projection:
+  stage: approve
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "release" && $CI_COMMIT_REF_PROTECTED == "true"'
+      when: manual
+  script:
+    - echo "Manual approval gate before publishing public wiki projections."
+
 publish_wiki_projection:
   stage: publish
-  image: alpine:3.20
   needs:
     - job: generate_wiki_projection
       artifacts: true
+    - job: approve_public_projection
   rules:
     - if: '$CI_COMMIT_BRANCH == "release" && $CI_COMMIT_REF_PROTECTED == "true"'
   before_script:
-    - apk add --no-cache git curl bash python3
     - git config --global user.name "codex-hooks GitLab CI"
     - git config --global user.email "ci@codex-hooks.local"
   script:
