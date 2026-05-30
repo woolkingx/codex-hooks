@@ -47,6 +47,7 @@
     "check:stale": "node scripts/check-stale-runtime.mjs",
     "policy:check": "node src/adapters/cli.mjs policy requirements sync",
     "policy:smoke": "node src/adapters/cli.mjs policy verify-command --event pre-tool-use --command \"sed -n '1,20p' file 2>/dev/null\" --expect allow && node src/adapters/cli.mjs policy verify-command --event pre-tool-use --command \"printf 'x' 2>/dev/null\" --expect allow && node src/adapters/cli.mjs policy verify-command --event pre-tool-use --command \"rm -rf /tmp/codex-hooks-target\" --expect block",
+    "gitlab:projection:check": "node scripts/check_gitlab_projection.mjs",
     "smoke": "node scripts/smoke-pre-tool-use.mjs",
     "verify": "npm run check:handbook && npm run check:stale && npm run policy:check && npm test && npm run smoke"
   }

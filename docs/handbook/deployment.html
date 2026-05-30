@@ -71,6 +71,25 @@
     </table>
   </section>
 
+  <section id="gitlab-control-plane">
+    <h2>GitLab Control Plane</h2>
+    <p>GitLab is the control plane. GitHub and Codeberg are public projections, not local publish targets. Local agents and operators push to <code>gitlab</code> only; GitLab mirrors and release-only CI jobs own public crossings.</p>
+    <pre><code>local worktree -&gt; GitLab only
+GitLab protected release -&gt; GitHub/Codeberg repository mirrors
+GitLab CI protected release -&gt; GitLab/GitHub/Codeberg wiki projections</code></pre>
+    <table>
+      <thead>
+        <tr><th>edge</th><th>owner</th><th>credential</th><th>gate</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>local worktree to GitLab</td><td>Git repository transport</td><td>Git SSH key</td><td><code>git remote -v</code> shows <code>gitlab</code> as the normal publish target.</td></tr>
+        <tr><td>GitLab to GitHub/Codeberg repos</td><td>GitLab remote mirror</td><td>Mirror token or deploy edge</td><td>Mirrors are enabled and <code>only_protected_branches=true</code>.</td></tr>
+        <tr><td>handbook to wikis</td><td>GitLab CI executor</td><td>Protected CI variables</td><td>Protected <code>release</code> jobs generate wiki Markdown from <code>docs/handbook/*.html</code> and publish readback succeeds.</td></tr>
+      </tbody>
+    </table>
+    <p>The handbook remains architecture truth. GitLab, GitHub, and Codeberg wiki pages are generated projections for navigation and must not become a second source of truth.</p>
+  </section>
+
   <section id="deployment-targets">
     <h2>Targets</h2>
     <table>

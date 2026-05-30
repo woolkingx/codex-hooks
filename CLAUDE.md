@@ -16,6 +16,7 @@ Architecture truth: `docs/handbook/index.html`
 | V1 runtime | V1 has `hook` and `cli` interfaces only; no daemon process. |
 | Daemon-ready | Do not design global mutable assumptions that block a future daemon adapter. |
 | ESM only | Implementation files use `.mjs`; no CommonJS. |
+| Publish topology | push to `gitlab` only. GitHub and Codeberg are GitLab-owned release projections; do not push them locally unless the user explicitly overrides this project boundary. |
 
 ## Navigation
 
