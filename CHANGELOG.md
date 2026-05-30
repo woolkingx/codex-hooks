@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.28 - 2026-05-30
+
+- Refreshed the OpenAI Codex generated hook schema mirror to commit `3e7baa00e43419967d90d6ad9cef40f58d5ac89f`.
+- Added official subagent tool-call identity support for `PreToolUse` and `PostToolUse` payloads.
+- Added the official `SubagentStop` event owner, rule schema, dispatcher entry, deploy config admission, and tests.
+- Documented the schema mirror stale-check path and the handler/root-schema/user-policy sync requirements for future schema refreshes.
+
 ## 0.1.27 - 2026-05-22
 
 - Documented the official semantics and permission-mode policy for all nine Codex hook events.

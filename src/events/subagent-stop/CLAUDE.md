@@ -1,0 +1,21 @@
+# events.subagent-stop
+
+## Scope
+subagent-stop channel: layer executor (input schema -> rule schema -> output schema).
+
+## Handbook
+Architecture truth: `../../../docs/handbook/event-model.html`
+
+## Keypoints
+- event owns its official input schema, event rule schema, official output schema, executor, and tests.
+- runtime accepts only `trigger + feature + output` rule data.
+- feature declarations are admitted by this event's `subagent-stop.rule.schema.json`; feature value schemas stay with feature modules; no event metadata data root exists.
+- hook stdout must validate against the official output schema.
+- errors throw at schema boundaries; fail-closed output is produced only through official output branches.
+
+## Rules / Commands
+- `@rules/rules.md`
+- Tests: `node --test src/events/subagent-stop/test.mjs`
+
+## Decisions
+- 0.1.28 (2026-05-30): event added after upstream Codex schema mirror introduced SubagentStop.

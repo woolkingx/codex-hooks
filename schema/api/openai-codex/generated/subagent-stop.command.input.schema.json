@@ -10,12 +10,24 @@
     }
   },
   "properties": {
+    "agent_id": {
+      "type": "string"
+    },
+    "agent_transcript_path": {
+      "$ref": "#/definitions/NullableString"
+    },
+    "agent_type": {
+      "type": "string"
+    },
     "cwd": {
       "type": "string"
     },
     "hook_event_name": {
-      "const": "SessionStart",
+      "const": "SubagentStop",
       "type": "string"
+    },
+    "last_assistant_message": {
+      "$ref": "#/definitions/NullableString"
     },
     "model": {
       "type": "string"
@@ -33,28 +45,31 @@
     "session_id": {
       "type": "string"
     },
-    "source": {
-      "enum": [
-        "startup",
-        "resume",
-        "clear",
-        "compact"
-      ],
-      "type": "string"
+    "stop_hook_active": {
+      "type": "boolean"
     },
     "transcript_path": {
       "$ref": "#/definitions/NullableString"
+    },
+    "turn_id": {
+      "description": "Codex extension: expose the active turn id to internal turn-scoped hooks.",
+      "type": "string"
     }
   },
   "required": [
+    "agent_id",
+    "agent_transcript_path",
+    "agent_type",
     "cwd",
     "hook_event_name",
+    "last_assistant_message",
     "model",
     "permission_mode",
     "session_id",
-    "source",
-    "transcript_path"
+    "stop_hook_active",
+    "transcript_path",
+    "turn_id"
   ],
-  "title": "session-start.command.input",
+  "title": "subagent-stop.command.input",
   "type": "object"
 }

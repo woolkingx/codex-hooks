@@ -86,6 +86,7 @@
             "SessionStart": { "$ref": "#/definitions/matcher_groups" },
             "Stop": { "$ref": "#/definitions/matcher_groups" },
             "SubagentStart": { "$ref": "#/definitions/matcher_groups" },
+            "SubagentStop": { "$ref": "#/definitions/matcher_groups" },
             "UserPromptSubmit": { "$ref": "#/definitions/matcher_groups" }
           }
         }

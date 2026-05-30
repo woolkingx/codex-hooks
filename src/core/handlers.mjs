@@ -7,6 +7,7 @@ const loaders = Object.freeze({
   'session-start':       () => import('../events/session-start/session-start.mjs'),
   'stop':                () => import('../events/stop/stop.mjs'),
   'subagent-start':      () => import('../events/subagent-start/subagent-start.mjs'),
+  'subagent-stop':       () => import('../events/subagent-stop/subagent-stop.mjs'),
   'user-prompt-submit':  () => import('../events/user-prompt-submit/user-prompt-submit.mjs'),
 })
 
@@ -19,6 +20,7 @@ const WIRE_TO_KEBAB = {
   SessionStart:       'session-start',
   Stop:               'stop',
   SubagentStart:      'subagent-start',
+  SubagentStop:       'subagent-stop',
   UserPromptSubmit:   'user-prompt-submit',
 }
 

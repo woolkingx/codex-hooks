@@ -19,6 +19,12 @@ test('trigger rule emits PDU', async () => {
   assert.equal(result.output.continue, true)
 })
 
+test('subagent tool context is valid optional SDU identity', async () => {
+  const input = {"hook_event_name":"PostToolUse","session_id":"sess1","cwd":"/tmp","model":"gpt4","permission_mode":"bypassPermissions","agent_id":"agent1","agent_type":"subagent","tool_name":"Bash","tool_input":{"command":"ls"},"tool_use_id":"tid1","tool_response":{"output":"ok"},"transcript_path":"/tmp/t.txt","turn_id":"turn1"}
+  const result = await handle(input, [])
+  assert.equal(result.output, null)
+})
+
 test('default permission mode blocks before rule evaluation', async () => {
   const input = {"hook_event_name":"PostToolUse","session_id":"sess1","cwd":"/tmp","model":"gpt4","permission_mode":"default","tool_name":"Bash","tool_input":{"command":"ls"},"tool_use_id":"tid1","tool_response":{"output":"ok"},"transcript_path":"/tmp/t.txt","turn_id":"turn1"}
   const result = await handle(input, [])

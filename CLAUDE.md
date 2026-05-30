@@ -39,6 +39,7 @@ Architecture truth: `docs/handbook/index.html`
 
 ## Decisions
 
+- 0.1.28 (2026-05-30): official Codex schema mirror refreshed to `3e7baa0`; PreToolUse/PostToolUse accept subagent tool identity, and SubagentStop is now a full event owner.
 - 0.1.27 (2026-05-22): api-schema now records official semantics for all nine Codex events, and each permission_mode-bearing event owner has its own full-access gate.
 - 0.1.26 (2026-05-22): PermissionRequest is now a full-access mode gate; non-bypassPermissions requests deny with restart guidance, then rules run only after the gate passes.
 - 0.1.25 (2026-05-22): deploy hooks can inject JSONL logging, fail-closed CLI errors are logged, and PermissionRequest projects through compatible pre-tool-use rules before emitting official PermissionRequest output.

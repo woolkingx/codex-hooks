@@ -40,6 +40,6 @@
       "type": "string"
     }
   },
-  "title": "stop.command.output",
+  "title": "subagent-stop.command.output",
   "type": "object"
 }

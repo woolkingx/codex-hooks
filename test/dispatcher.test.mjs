@@ -35,6 +35,7 @@ test('loadHandler returns null for unknown', async () => {
 test('kebabFromWire maps wire names', () => {
   assert.equal(kebabFromWire('PreToolUse'), 'pre-tool-use')
   assert.equal(kebabFromWire('SubagentStart'), 'subagent-start')
+  assert.equal(kebabFromWire('SubagentStop'), 'subagent-stop')
 })
 
 test('every handler exposes meta with event + actions', async () => {

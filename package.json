@@ -1,6 +1,6 @@
 {
   "name": "codex-hooks",
-  "version": "0.1.27",
+  "version": "0.1.28",
   "description": "Codex-native hook policy runtime for local safety guardrails.",
   "type": "module",
   "license": "MIT",

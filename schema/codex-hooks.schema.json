@@ -65,6 +65,13 @@
             "output": { "$ref": "api/openai-codex/generated/subagent-start.command.output.schema.json" }
           }
         },
+        "subagent-stop": {
+          "type": "object",
+          "properties": {
+            "input": { "$ref": "api/openai-codex/generated/subagent-stop.command.input.schema.json" },
+            "output": { "$ref": "api/openai-codex/generated/subagent-stop.command.output.schema.json" }
+          }
+        },
         "user-prompt-submit": {
           "type": "object",
           "properties": {
@@ -123,6 +130,12 @@
           "type": "object",
           "properties": {
             "rule": { "$ref": "../src/events/subagent-start/subagent-start.rule.schema.json" }
+          }
+        },
+        "subagent-stop": {
+          "type": "object",
+          "properties": {
+            "rule": { "$ref": "../src/events/subagent-stop/subagent-stop.rule.schema.json" }
           }
         },
         "user-prompt-submit": {
