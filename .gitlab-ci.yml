@@ -31,7 +31,19 @@ approve_public_projection:
     - if: '$CI_COMMIT_BRANCH == "release" && $CI_COMMIT_REF_PROTECTED == "true"'
       when: manual
   script:
-    - echo "Manual approval gate before publishing public wiki projections."
+    - echo "Manual approval gate before publishing public repository and wiki projections."
+
+publish_public_repositories:
+  stage: publish
+  needs:
+    - job: approve_public_projection
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "release" && $CI_COMMIT_REF_PROTECTED == "true"'
+  before_script:
+    - git config --global user.name "codex-hooks GitLab CI"
+    - git config --global user.email "ci@codex-hooks.local"
+  script:
+    - bash scripts/publish_public_repos.sh
 
 publish_wiki_projection:
   stage: publish

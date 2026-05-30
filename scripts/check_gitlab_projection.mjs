@@ -65,6 +65,7 @@ const [info, releaseBranch, protectedBranches, mirrors] = await Promise.all([
 const releaseProtected = protectedBranches.some((branch) => branch.name === "release");
 const enabledMirrors = mirrors.filter((mirror) => mirror.enabled);
 const mirrorsOnlyProtected = enabledMirrors.every((mirror) => mirror.only_protected_branches === true);
+const mirrorsDisabled = enabledMirrors.length === 0;
 const mirrorReport = enabledMirrors.map((mirror) => ({
   id: mirror.id,
   url: sanitizeUrl(mirror.url),
@@ -91,6 +92,7 @@ const report = {
   project_id: info.id,
   gitlab_release_sha: releaseBranch.commit.id,
   release_protected: releaseProtected,
+  mirrors_disabled: mirrorsDisabled,
   mirrors_only_protected: mirrorsOnlyProtected,
   mirrors: mirrorReport,
   public_branch_readback: publicBranchReadback,
@@ -100,6 +102,6 @@ console.log(JSON.stringify(report, null, 2));
 
 const mirrorErrors = mirrorReport.filter((mirror) => mirror.last_error);
 const publicMismatch = publicBranchReadback.filter((readback) => !readback.matches_gitlab_release);
-if (!releaseProtected || !mirrorsOnlyProtected || mirrorErrors.length > 0 || publicMismatch.length > 0) {
+if (!releaseProtected || !mirrorsDisabled || !mirrorsOnlyProtected || mirrorErrors.length > 0 || publicMismatch.length > 0) {
   process.exit(1);
 }
