@@ -75,8 +75,8 @@
     <h2>GitLab Control Plane</h2>
     <p>GitLab is the control plane. GitHub and Codeberg are public projections, not local publish targets. Local agents and operators push to <code>gitlab</code> only; manual-approved GitLab CI jobs own public crossings.</p>
     <pre><code>local worktree -&gt; GitLab only
-GitLab protected release + manual approval -&gt; GitHub/Codeberg repositories
-GitLab CI protected release -&gt; GitLab/GitHub/Codeberg wiki projections</code></pre>
+GitLab protected release -&gt; GitLab wiki projection
+GitLab protected release + manual approval -&gt; GitHub/Codeberg repositories and wikis</code></pre>
     <table>
       <thead>
         <tr><th>edge</th><th>owner</th><th>credential</th><th>gate</th></tr>
@@ -84,7 +84,8 @@ GitLab CI protected release -&gt; GitLab/GitHub/Codeberg wiki projections</code>
       <tbody>
         <tr><td>local worktree to GitLab</td><td>Git repository transport</td><td>Git SSH key</td><td><code>git remote -v</code> shows <code>gitlab</code> as the normal publish target.</td></tr>
         <tr><td>GitLab to GitHub/Codeberg repos</td><td>GitLab CI executor after manual approval</td><td>Protected CI variables</td><td>Remote mirrors are disabled; repository publish jobs run only after the protected <code>release</code> manual approval gate.</td></tr>
-        <tr><td>handbook to wikis</td><td>GitLab CI executor</td><td>Protected CI variables</td><td>Protected <code>release</code> jobs generate wiki Markdown from <code>docs/handbook/*.html</code> and publish readback succeeds.</td></tr>
+        <tr><td>handbook to GitLab wiki</td><td>GitLab CI executor</td><td>Protected GitLab token</td><td>Protected <code>release</code> build jobs generate wiki Markdown from <code>docs/handbook/*.html</code> and publish every GitLab wiki page before public approval.</td></tr>
+        <tr><td>handbook to GitHub/Codeberg wikis</td><td>GitLab CI executor after manual approval</td><td>Protected CI variables</td><td>Public wiki publish jobs run only after the protected <code>release</code> manual approval gate.</td></tr>
       </tbody>
     </table>
     <p>The handbook remains architecture truth. GitLab, GitHub, and Codeberg wiki pages are generated projections for navigation and must not become a second source of truth.</p>

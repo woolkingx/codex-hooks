@@ -1,6 +1,7 @@
 stages:
   - verify
   - build
+  - internal_publish
   - approve
   - publish
 
@@ -24,6 +25,16 @@ generate_wiki_projection:
     paths:
       - .build/wiki/
     expire_in: 7 days
+
+publish_gitlab_wiki:
+  stage: internal_publish
+  needs:
+    - job: generate_wiki_projection
+      artifacts: true
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "release" && $CI_COMMIT_REF_PROTECTED == "true"'
+  script:
+    - bash scripts/publish_gitlab_wiki.sh
 
 approve_public_projection:
   stage: approve

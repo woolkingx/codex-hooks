@@ -8,12 +8,7 @@ set -euo pipefail
 publish_release_branch() {
   local remote_url="$1"
   local label="$2"
-  local work_dir
-  work_dir="$(mktemp -d)"
-  git clone --branch release --depth 1 "$remote_url" "$work_dir"
-  git -C "$work_dir" fetch origin "${CI_COMMIT_SHA}"
-  git -C "$work_dir" update-ref refs/heads/release "${CI_COMMIT_SHA}"
-  git -C "$work_dir" push origin release:release
+  git push "$remote_url" HEAD:release
   echo "repository release updated: ${label} ${CI_COMMIT_SHA}"
 }
 
