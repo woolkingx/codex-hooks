@@ -56,3 +56,10 @@ test('public projection publish jobs do not expose GitLab control-plane identity
   assert.match(publicPublisher, /"\.gitlab-ci\.yml"/)
   assert.doesNotMatch(publicPublisher, /gitlab release/i)
 })
+
+test('public wiki projection skips missing wiki remotes unless required', () => {
+  const wikiPublisher = fs.readFileSync('scripts/publish_wikis.sh', 'utf8')
+  assert.match(wikiPublisher, /wiki skipped: \$\{label\} remote missing/)
+  assert.match(wikiPublisher, /PUBLIC_WIKI_REQUIRED:-0/)
+  assert.match(wikiPublisher, /grep -qi "not found"/)
+})
