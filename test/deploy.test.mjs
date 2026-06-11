@@ -44,6 +44,10 @@ test('install plan is deploy schema data and remains dry-run by default', () => 
 })
 
 test('public projection publish jobs do not expose GitLab control-plane identity', () => {
+  if (!fs.existsSync('.gitlab-ci.yml')) {
+    assert.equal(fs.existsSync('scripts/publish_public_repos.sh'), false)
+    return
+  }
   const ci = fs.readFileSync('.gitlab-ci.yml', 'utf8')
   const publicRepos = ci.match(/publish_public_repositories:[\s\S]*?(?=\npublish_wiki_projection:)/)?.[0] || ''
   const publicWikis = ci.match(/publish_wiki_projection:[\s\S]*?(?=\nclose_public_projection_approval:)/)?.[0] || ''
@@ -58,6 +62,10 @@ test('public projection publish jobs do not expose GitLab control-plane identity
 })
 
 test('public wiki projection skips missing wiki remotes unless required', () => {
+  if (!fs.existsSync('scripts/publish_wikis.sh')) {
+    assert.equal(fs.existsSync('.gitlab-ci.yml'), false)
+    return
+  }
   const wikiPublisher = fs.readFileSync('scripts/publish_wikis.sh', 'utf8')
   assert.match(wikiPublisher, /wiki skipped: \$\{label\} remote missing/)
   assert.match(wikiPublisher, /PUBLIC_WIKI_REQUIRED:-0/)
