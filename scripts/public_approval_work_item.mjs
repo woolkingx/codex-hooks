@@ -116,6 +116,14 @@ async function closeSupersededWorkItems(currentTitle) {
   return superseded.map((workItem) => workItem.iid);
 }
 
+async function findPendingTodo(workItemIid) {
+  const params = new URLSearchParams();
+  params.set("project_id", projectId());
+  params.set("state", "pending");
+  const { body } = await api(`/todos?${params.toString()}`);
+  return body.find((todo) => String(todo.target?.iid) === String(workItemIid)) || null;
+}
+
 async function createOrUpdateWorkItem({ dryRun }) {
   const title = releaseTitle();
   const jobUrl = dryRun ? optionalEnv("APPROVAL_JOB_URL", requireEnv("CI_PIPELINE_URL")) : await approvalJobUrl();
@@ -163,12 +171,17 @@ async function createOrUpdateWorkItem({ dryRun }) {
     workItem = created.body;
   }
 
-  const todo = await api(`/projects/${projectId()}/issues/${workItem.iid}/todo`, { method: "POST" });
+  let todoStatus = "existing";
+  const existingTodo = await findPendingTodo(workItem.iid);
+  if (!existingTodo) {
+    const todo = await api(`/projects/${projectId()}/issues/${workItem.iid}/todo`, { method: "POST" });
+    todoStatus = todo.status;
+  }
   console.log(JSON.stringify({
     action: "create",
     work_item_iid: workItem.iid,
     work_item_url: workItem.web_url,
-    todo_status: todo.status,
+    todo_status: todoStatus,
     closed_superseded_work_item_iids: closedSuperseded,
   }, null, 2));
 }
