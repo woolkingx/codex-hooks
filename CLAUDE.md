@@ -1,6 +1,6 @@
 # codex-hooks
 
-Scope: Codex-native hooks manager for local policy enforcement.
+Scope: Schema-first operating layer for Codex hooks: policy, state, diagnostics, and verified guardrails.
 
 Architecture truth: `docs/handbook/index.html`
 
@@ -16,7 +16,7 @@ Architecture truth: `docs/handbook/index.html`
 | V1 runtime | V1 has `hook` and `cli` interfaces only; no daemon process. |
 | Daemon-ready | Do not design global mutable assumptions that block a future daemon adapter. |
 | ESM only | Implementation files use `.mjs`; no CommonJS. |
-| Publish topology | push to `gitlab` only. GitHub and Codeberg are GitLab-owned release projections; do not push them locally unless the user explicitly overrides this project boundary. |
+| Publish topology | GitHub, Codeberg, and GitLab are peer remotes. Push explicit `release:release` to each intended remote from the `release` worktree; GitLab is an internal git/CI tool by default, not the owner of GitHub/Codeberg publication. |
 
 ## Navigation
 

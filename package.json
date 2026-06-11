@@ -1,24 +1,27 @@
 {
   "name": "codex-hooks",
   "version": "0.2.0",
-  "description": "Codex-native hook policy runtime for local safety guardrails.",
+  "description": "Schema-first operating layer for Codex hooks: policy, state, diagnostics, and verified guardrails.",
   "type": "module",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/codex-hooks/codex-hooks.git"
+    "url": "git+https://github.com/woolkingx/codex-hooks.git"
   },
-  "homepage": "https://github.com/codex-hooks/codex-hooks#readme",
+  "homepage": "https://github.com/woolkingx/codex-hooks#readme",
   "bugs": {
-    "url": "https://github.com/codex-hooks/codex-hooks/issues"
+    "url": "https://github.com/woolkingx/codex-hooks/issues"
   },
   "keywords": [
     "codex",
     "hooks",
     "policy",
+    "guardrails",
+    "diagnostics",
     "json-schema",
     "cli",
-    "safety"
+    "safety",
+    "agentic"
   ],
   "engines": {
     "node": ">=20"

@@ -1,10 +1,20 @@
 # codex-hooks
 
-Codex-operated hook policy runtime for local safety guardrails and plugin-like capabilities.
+Schema-first operating layer for Codex hooks.
 
-`codex-hooks` is meant to solve Codex permission-management hell without sending users back into sandbox tuning, manual allowlists, or one-off shell wrappers. It also replaces temporary development scripts with a schema-owned foundation for hook behavior, test boundaries, and feature growth. Humans state safety, workflow, or plugin-like feature requirements in natural language; Codex follows the handbook to develop those requirements into the hooks system: update `policy/user.json`, maintain matching rule files, change feature modules, verify behavior, and install Codex hooks.
+`codex-hooks` turns Codex lifecycle hooks into validated, stateful, project-scoped policy features. It sits above raw `hooks.json` scripts and gives Codex a control plane for hook diagnostics, rule compilation, state ownership, deployment, and verification.
 
-The runtime itself is deterministic. It executes rule data against official Codex hook schemas, validates official input, applies `trigger + feature + output` rule data, validates official output, and writes only official hook output. Each event owner handles `permission_mode` using its own official output shape; restricted modes receive full-access guidance, and local rules act as hook guardrails after `permission_mode=bypassPermissions`.
+Codex hooks are powerful, but operating them directly can be brittle: a hook may not be trusted, may run from a surprising `cwd`, may miss a tool path, may emit invalid JSON, may lose state after compaction, or may be too noisy to use on every tool call. `codex-hooks` makes those problems explicit objects instead of one-off shell glue.
+
+What it provides:
+
+- **Schema-owned hook runtime**: official Codex hook input and output are validated at the event boundary.
+- **Policy compiler path**: natural-language requirements become `policy/user.json` plus runtime rule projections.
+- **Stateful features**: hook state is owned by the status layer, scoped by project/cwd, and resettable across lifecycle events.
+- **Diagnostics and evidence**: doctor, status, logs, command verification, and fixture replay explain what ran, what matched, and why.
+- **External tool object tree**: `tools.schema` names callable event, feature, function, system, and help surfaces for CLI, hook, MCP, and future UI adapters.
+
+The runtime itself is deterministic. It executes rule data against official Codex hook schemas, applies `trigger + feature + output` declarations, validates official output, and writes only official hook output. Each event owner handles `permission_mode` using its own official output shape; restricted modes receive full-access guidance, and local rules act as hook guardrails after `permission_mode=bypassPermissions`.
 
 Architecture truth lives in `docs/handbook/index.html`. This README is the public entrypoint.
 
@@ -14,8 +24,20 @@ Architecture truth lives in `docs/handbook/index.html`. This README is the publi
 - Runtime: CLI and Codex hook interface
 - Daemon: roadmap
 - Rule runtime: canonical `trigger + feature + output` declarations only
+- Stateful features: status-owned hook state
+- External surface: `tools.schema` object tree
 - Schema tree: `schema/codex-hooks.schema.json` root manifest + `schema2object.Loader.resolve()`
 - Supported Node.js: `>=20`
+
+## Why This Exists
+
+Raw hooks are extension points. `codex-hooks` is the operating layer:
+
+```text
+Codex event -> official schema -> policy rule -> feature/state -> official output -> log/status evidence
+```
+
+The goal is not to replace Codex hooks. The goal is to make hooks usable as repeatable product features: inspectable, typed, stateful, testable, and safe to install.
 
 ## How You Use It
 
@@ -24,9 +46,11 @@ Tell Codex what you want:
 ```text
 Install codex-hooks for this project.
 Add a rule that blocks rm -rf in Bash.
+Block the first rg/find call until the agent understands the project structure.
 Disable the sudo rule.
 Add a feature that detects another Bash pattern.
 Show hook status from the latest log.
+Explain why this hook did not run.
 ```
 
 Codex then follows the handbook:
