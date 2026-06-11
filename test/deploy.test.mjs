@@ -1,5 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
+import fs from 'node:fs'
 import { listEvents, wireFromKebab } from '../src/core/handlers.mjs'
 import { ensureSchemaValid, schemaRefs } from '../src/core/schema-tree.mjs'
 import { createInstallPlan, renderHooksConfig, runDoctor } from '../src/deploy/index.mjs'
@@ -40,4 +41,18 @@ test('install plan is deploy schema data and remains dry-run by default', () => 
   assert.doesNotThrow(() => ensureSchemaValid(plan, schemaRefs.system('deploy'), 'deploy'))
   assert.equal(plan.installation.mode, 'dry-run')
   assert.ok(Array.isArray(plan.installation.will_write))
+})
+
+test('public projection publish jobs do not expose GitLab control-plane identity', () => {
+  const ci = fs.readFileSync('.gitlab-ci.yml', 'utf8')
+  const publicRepos = ci.match(/publish_public_repositories:[\s\S]*?(?=\npublish_wiki_projection:)/)?.[0] || ''
+  const publicWikis = ci.match(/publish_wiki_projection:[\s\S]*?(?=\nclose_public_projection_approval:)/)?.[0] || ''
+  assert.match(publicRepos, /git config --global user\.name "codex-hooks release bot"/)
+  assert.match(publicWikis, /git config --global user\.name "codex-hooks release bot"/)
+  assert.doesNotMatch(publicRepos, /GitLab CI/)
+  assert.doesNotMatch(publicWikis, /GitLab CI/)
+
+  const publicPublisher = fs.readFileSync('scripts/publish_public_repos.sh', 'utf8')
+  assert.match(publicPublisher, /"\.gitlab-ci\.yml"/)
+  assert.doesNotMatch(publicPublisher, /gitlab release/i)
 })

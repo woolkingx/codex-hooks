@@ -62,7 +62,7 @@ publish_public_repositories:
   rules:
     - if: '$CI_COMMIT_BRANCH == "release" && $CI_COMMIT_REF_PROTECTED == "true"'
   before_script:
-    - git config --global user.name "codex-hooks GitLab CI"
+    - git config --global user.name "codex-hooks release bot"
     - git config --global user.email "ci@codex-hooks.local"
   script:
     - bash scripts/publish_public_repos.sh
@@ -76,7 +76,7 @@ publish_wiki_projection:
   rules:
     - if: '$CI_COMMIT_BRANCH == "release" && $CI_COMMIT_REF_PROTECTED == "true"'
   before_script:
-    - git config --global user.name "codex-hooks GitLab CI"
+    - git config --global user.name "codex-hooks release bot"
     - git config --global user.email "ci@codex-hooks.local"
   script:
     - bash scripts/publish_wikis.sh
