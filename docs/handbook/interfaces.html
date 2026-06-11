@@ -61,13 +61,37 @@
     </table>
   </section>
 
+  <section id="tools-object-tree">
+    <h2>External Tool Object Tree</h2>
+    <pre><code>root
+  tools.schema
+    events
+    features
+    fn
+    system
+    help
+
+tools.object_tree -&gt; cli | hook | mcp | web | help renderers</code></pre>
+    <p><code>tools.schema</code> is the unified external callable tool set. It is not a CLI command list and not an internal helper registry. It is the public object tree that lets CLI, hook, MCP, web, and help renderers share the same callable capability coordinates.</p>
+    <table>
+      <thead><tr><th>object field</th><th>meaning</th><th>owner boundary</th></tr></thead>
+      <tbody>
+        <tr><td><code>type</code></td><td>Callable object class such as event, feature, fn, system, or help.</td><td><code>tools.schema</code> owns external classification.</td></tr>
+        <tr><td><code>status</code></td><td>Availability and stability state for exposure, for example implemented, target, roadmap, hidden, or deprecated.</td><td><code>tools.schema</code> owns exposure status, not runtime health truth.</td></tr>
+        <tr><td><code>value</code></td><td>Descriptor data: title, owner reference, schema references, gates, adapter visibility, and examples.</td><td>The descriptor points to owner truth; it does not copy implementation truth.</td></tr>
+        <tr><td><code>method</code></td><td>Callable operations such as <code>describe</code>, <code>invoke</code>, <code>verify</code>, <code>render</code>, or <code>list</code>.</td><td>Methods route to owner modules; adapters only expose them.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
   <section id="owner-interfaces">
     <h2>Owner Interface Definition</h2>
     <pre><code>owner owns truth
-CLI exposes owner operations
+tools.schema names external callable objects
+CLI, hook, MCP, and web expose tool methods
 pipeline composes owner operations
 CI/CD proves the composed path</code></pre>
-    <p>CLI commands are stable interfaces over owner modules. They may orchestrate owner APIs and collect evidence, but they must not become a hidden service layer. If logic belongs to policy, compiler, runtime, deploy, release, log, or status, the CLI calls that owner instead of reimplementing it.</p>
+    <p>CLI commands are stable interfaces over owner modules and tool objects. They may orchestrate owner APIs and collect evidence, but they must not become a hidden service layer. If logic belongs to policy, compiler, runtime, deploy, release, log, status, or a feature owner, the adapter calls that owner instead of reimplementing it.</p>
     <table>
       <thead><tr><th>owner</th><th>CLI interface</th><th>pipeline role</th></tr></thead>
       <tbody>

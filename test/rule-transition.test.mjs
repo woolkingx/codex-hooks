@@ -1,6 +1,7 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
-import { applyRule, resolveInput, validateRuleTransition } from '../src/core/transition.mjs'
+import { applyRule, applyRuleWithEffects, resolveInput, validateRuleTransition } from '../src/core/transition.mjs'
+import { createHookState } from '../src/status/hook-state.mjs'
 
 describe('applyRule', () => {
   it('returns output for matching trigger and feature data', () => {
@@ -39,6 +40,25 @@ describe('applyRule', () => {
     assert.deepEqual(applyRule(rule, { tool_name: 'Bash', tool_input: { command: "awk '{print}' file > out" } }), { decision: 'block' })
     assert.deepEqual(applyRule(rule, { tool_name: 'Bash', tool_input: { command: "sed -i 's/a/b/' file" } }), { decision: 'block' })
     assert.equal(applyRule(rule, { tool_name: 'Bash', tool_input: { command: "awk '{print}' file" } }), null)
+  })
+
+  it('supports deferred feature effects', () => {
+    const rule = {
+      id: 'first-rg',
+      event: 'pre-tool-use',
+      trigger: { '$.tool_name': 'Bash' },
+      feature: {
+        'bash-command': { value: { path: '$.tool_input.command', name: 'rg' } },
+        'block-first-time': { key: 'structural-search' },
+      },
+      output: { decision: 'block' },
+    }
+    const input = { cwd: process.cwd(), session_id: 's1', tool_name: 'Bash', tool_input: { command: 'rg x' } }
+    const context = { hookState: createHookState(), now: 1000 }
+    const first = applyRuleWithEffects(rule, input, context)
+    assert.deepEqual(first.output, { decision: 'block' })
+    first.commit()
+    assert.equal(applyRule(rule, input, context), null)
   })
 })
 

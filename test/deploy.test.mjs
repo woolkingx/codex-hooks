@@ -15,6 +15,7 @@ test('render-hooks writes project-local ignored logs by default', () => {
   for (const groups of Object.values(config.hooks)) {
     const command = groups[0].hooks[0].command
     assert.match(command, / --log "logs\/codex-hooks\.jsonl"/)
+    assert.match(command, / --state "logs\/codex-hooks-state\.json"/)
   }
 })
 

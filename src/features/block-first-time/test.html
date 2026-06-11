@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>block-first-time proof contract</title>
+</head>
+<body>
+  <h1>block-first-time proof contract</h1>
+  <p>The feature proves first-time matching only when a status-owned hook-state ledger is provided.</p>
+  <ul>
+    <li>With hook-state context, evaluation returns true only for the first `cwd + session_id + compact_mark + key` observation.</li>
+    <li>Commit writes to status-owned hook-state only after the rule output validates.</li>
+    <li>Without hook-state context, evaluation returns false and commit is a no-op.</li>
+  </ul>
+</body>
+</html>

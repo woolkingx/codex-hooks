@@ -1,0 +1,162 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "tools.schema.json",
+  "title": "codex-hooks external callable tool object tree",
+  "description": "External callable object tree shared by CLI, hook, MCP, web, and help projections.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "tools"],
+  "properties": {
+    "version": {
+      "type": "string"
+    },
+    "tools": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["events", "features", "fn", "system", "help"],
+      "properties": {
+        "events": {
+          "$ref": "#/definitions/toolMap"
+        },
+        "features": {
+          "$ref": "#/definitions/toolMap"
+        },
+        "fn": {
+          "$ref": "#/definitions/toolMap"
+        },
+        "system": {
+          "$ref": "#/definitions/toolMap"
+        },
+        "help": {
+          "$ref": "#/definitions/toolMap"
+        }
+      }
+    }
+  },
+  "definitions": {
+    "toolMap": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/definitions/toolObject"
+      }
+    },
+    "toolObject": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "status", "value", "method"],
+      "properties": {
+        "type": {
+          "enum": ["event", "feature", "fn", "system", "help"]
+        },
+        "status": {
+          "enum": ["implemented", "target", "roadmap", "hidden", "deprecated"]
+        },
+        "value": {
+          "$ref": "#/definitions/toolValue"
+        },
+        "method": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/methodDescriptor"
+          },
+          "minProperties": 1
+        }
+      }
+    },
+    "toolValue": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "title", "owner", "adapters", "gates"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "owner": {
+          "$ref": "#/definitions/ownerRef"
+        },
+        "schema": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "adapters": {
+          "type": "array",
+          "items": {
+            "enum": ["cli", "hook", "mcp", "web"]
+          },
+          "uniqueItems": true
+        },
+        "adapter_status": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "cli": { "$ref": "#/definitions/status" },
+            "hook": { "$ref": "#/definitions/status" },
+            "mcp": { "$ref": "#/definitions/status" },
+            "web": { "$ref": "#/definitions/status" }
+          }
+        },
+        "gates": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "examples": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "ownerRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind"],
+      "properties": {
+        "kind": {
+          "enum": ["event", "feature", "fn", "system", "help", "adapter"]
+        },
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "path": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "anyOf": [
+        { "required": ["id"] },
+        { "required": ["path"] }
+      ]
+    },
+    "methodDescriptor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind"],
+      "properties": {
+        "kind": {
+          "enum": ["read", "execute", "verify", "render", "list", "describe"]
+        },
+        "target": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "status": {
+      "enum": ["implemented", "target", "roadmap", "hidden", "deprecated"]
+    }
+  }
+}

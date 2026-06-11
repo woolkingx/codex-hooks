@@ -60,7 +60,7 @@ output schema = event output data</code></pre>
         <tr><td>runtime</td><td><code>policy/rules/&lt;event&gt;/&lt;id&gt;.rule.json</code></td><td>Rule data; one file per rule id.</td></tr>
         <tr><td>runtime</td><td>hook input / hook output</td><td>Official Codex schemas.</td></tr>
         <tr><td>runtime observation</td><td>logs</td><td>All gaps, reports, traces, explanations, diagnostics, and errors are log information unless the official output schema admits them.</td></tr>
-        <tr><td>runtime state</td><td>status</td><td>Status snapshot data.</td></tr>
+        <tr><td>runtime state</td><td>status / hook state</td><td>Status snapshot data and bounded hook control ledger keyed by <code>cwd</code>, <code>session_id</code>, and compact generation.</td></tr>
         <tr><td>control</td><td>config / deploy / profile</td><td>Control-plane data.</td></tr>
       </tbody>
     </table>
@@ -90,8 +90,18 @@ trace / explain / diagnostic schema root</code></pre>
     <p>Rule schema is the contract for event triggers. It is not a central feature registry and not a copy of the input schema.</p>
   </section>
 
+  <section id="stateful-features">
+    <h2>5. Stateful Feature Topology</h2>
+    <pre><code>official hook input
+  -&gt; event rule trigger
+  -&gt; admitted feature module
+       reads/writes hook state through status owner
+  -&gt; official output data | null</code></pre>
+    <p>Stateful feature modules are still features: their persisted parameters live under <code>rule.feature.&lt;name&gt;</code>, and their state reads/writes cross only through the status owner. They must not mutate policy, rule files, logs, or event input. The first built-in stateful feature is <code>block-first-time</code>, which blocks once per project/session/compact generation and then no-matches on later equivalent tool uses.</p>
+  </section>
+
   <section id="compiler">
-    <h2>5. Compiler Topology</h2>
+    <h2>6. Compiler Topology</h2>
     <pre><code>user requirement data
   -&gt; compiler runtime
   -&gt; rule data
@@ -100,7 +110,7 @@ trace / explain / diagnostic schema root</code></pre>
   </section>
 
   <section id="owner-interface">
-    <h2>6. Owner Interface Topology</h2>
+    <h2>7. Owner Interface Topology</h2>
     <pre><code>owner module owns truth
   -&gt; owner API mutates or reads owned artifact
   -&gt; CLI command exposes that owner API

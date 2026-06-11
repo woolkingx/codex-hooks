@@ -1,10 +1,10 @@
 {
   "source": "OpenAI Codex generated hook schemas",
   "repository": "https://github.com/openai/codex.git",
-  "tree_url": "https://github.com/openai/codex/tree/3e7baa00e43419967d90d6ad9cef40f58d5ac89f/codex-rs/hooks/schema/generated",
+  "tree_url": "https://github.com/openai/codex/tree/7c2394808ed09b1e3aae254f12c027ff657e8f20/codex-rs/hooks/schema/generated",
   "path": "codex-rs/hooks/schema/generated",
-  "commit": "3e7baa00e43419967d90d6ad9cef40f58d5ac89f",
-  "commit_date": "2026-05-30T06:37:26Z",
-  "retrieved_at": "2026-05-30T10:48:14.656Z",
+  "commit": "7c2394808ed09b1e3aae254f12c027ff657e8f20",
+  "commit_date": "2026-06-11T12:03:53Z",
+  "retrieved_at": "2026-06-11T12:59:10.803Z",
   "file_count": 20
 }

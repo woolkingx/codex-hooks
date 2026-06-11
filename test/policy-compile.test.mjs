@@ -32,6 +32,18 @@ function mkRulesRoot() {
   return path.relative(ROOT, fs.mkdtempSync(path.join(os.tmpdir(), 'codex-hooks-cli-rules-')))
 }
 
+function mkStatePath() {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'codex-hooks-cli-state-'))
+  return path.join(dir, 'state.json')
+}
+
+function writeInput(name, body) {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'codex-hooks-cli-input-'))
+  const file = path.join(dir, name)
+  fs.writeFileSync(file, JSON.stringify(body, null, 2))
+  return file
+}
+
 function writeRule(rulesRoot, event, fileId, rule) {
   const dir = path.join(ROOT, rulesRoot, event)
   fs.mkdirSync(dir, { recursive: true })
@@ -201,6 +213,102 @@ describe('policy verify-command', () => {
     const result = JSON.parse(out)
     assert.equal(result.ok, true)
     assert.equal(result.actual, 'block')
+  })
+
+  it('blocks structural search once, then resets after PostCompact', () => {
+    const statePath = mkStatePath()
+    let out = runCli(
+      'policy',
+      'verify-command',
+      '--event',
+      'pre-tool-use',
+      '--command',
+      'rg owner',
+      '--expect',
+      'block',
+      '--state',
+      statePath,
+    )
+    let result = JSON.parse(out)
+    assert.equal(result.ok, true)
+    assert.equal(result.fired_rule_id, 'first-rg-structure-gate')
+
+    out = runCli(
+      'policy',
+      'verify-command',
+      '--event',
+      'pre-tool-use',
+      '--command',
+      'find . -name "*.mjs"',
+      '--expect',
+      'allow',
+      '--state',
+      statePath,
+    )
+    result = JSON.parse(out)
+    assert.equal(result.ok, true)
+    assert.equal(result.actual, 'allow')
+
+    const compactInput = writeInput('post-compact.json', {
+      cwd: ROOT,
+      hook_event_name: 'PostCompact',
+      model: 'gpt-5.4',
+      session_id: 'policy-verify-command',
+      transcript_path: null,
+      trigger: 'manual',
+      turn_id: 'policy-verify-compact',
+    })
+    runCli('run', compactInput, '--rules', 'policy/rules', '--state', statePath)
+
+    out = runCli(
+      'policy',
+      'verify-command',
+      '--event',
+      'pre-tool-use',
+      '--command',
+      'find . -name "*.mjs"',
+      '--expect',
+      'block',
+      '--state',
+      statePath,
+    )
+    result = JSON.parse(out)
+    assert.equal(result.ok, true)
+    assert.equal(result.fired_rule_id, 'first-find-structure-gate')
+
+    runCli('run', compactInput, '--rules', 'policy/rules', '--state', statePath)
+    out = runCli(
+      'policy',
+      'verify-command',
+      '--event',
+      'pre-tool-use',
+      '--command',
+      'rg owner',
+      '--expect',
+      'allow',
+      '--state',
+      statePath,
+    )
+    result = JSON.parse(out)
+    assert.equal(result.ok, true)
+    assert.equal(result.actual, 'allow')
+  })
+
+  it('allows structural search when no hook state owner is configured', () => {
+    const out = runCli(
+      'policy',
+      'verify-command',
+      '--event',
+      'pre-tool-use',
+      '--command',
+      'rg owner',
+      '--expect',
+      'allow',
+    )
+    const result = JSON.parse(out)
+    assert.equal(result.ok, true)
+    assert.equal(result.actual, 'allow')
+    assert.equal(result.fired_rule_id, null)
   })
 })
 

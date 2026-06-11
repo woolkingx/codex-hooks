@@ -1,5 +1,6 @@
-import { applyRule } from '../../core/transition.mjs'
+import { applyRuleWithEffects } from '../../core/transition.mjs'
 import { loadOfficialSchema, ensureValid } from '../../core/load.mjs'
+import { loadHookState, saveHookState } from '../../status/hook-state.mjs'
 import { instanceId } from '../_shared/instance-id.mjs'
 
 const KEBAB = 'pre-tool-use'
@@ -42,14 +43,18 @@ export async function handle(rawInput, rules, options = {}) {
     .filter(r => r.event === KEBAB)
     .sort((a, b) => (a.priority ?? 100) - (b.priority ?? 100))
 
+  const hookState = options.statePath ? loadHookState(options.statePath) : null
+  const featureContext = hookState ? { hookState } : {}
 
   let value = null
   let firedRuleId = null
+  let commit = null
   for (const rule of eventRules) {
     if (rule.enabled === false || rule.enabled === 'test') continue
-    const result = applyRule(rule, rawInput)
+    const result = applyRuleWithEffects(rule, rawInput, featureContext)
     if (result !== null && result !== undefined) {
-      value = result
+      value = result.output
+      commit = result.commit
       firedRuleId = rule.id
       break
     }
@@ -64,6 +69,10 @@ export async function handle(rawInput, rules, options = {}) {
   if (value !== null && value !== undefined) {
     const pduSchema = loadOfficialSchema(KEBAB, 'output')
     ensureValid(value, pduSchema, `${KEBAB}.pdu`)
+    if (commit) {
+      commit()
+      if (options.statePath && hookState) saveHookState(options.statePath, hookState)
+    }
     ret.output = value
   }
 

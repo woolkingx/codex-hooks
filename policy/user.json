@@ -14,6 +14,18 @@
       "requirement": "Block Bash access to sensitive system paths."
     },
     {
+      "id": "first-rg-structure-gate",
+      "event": "pre-tool-use",
+      "enabled": true,
+      "requirement": "Block the first rg structural search in a project context and remind Codex to inspect directory structure before searching."
+    },
+    {
+      "id": "first-find-structure-gate",
+      "event": "pre-tool-use",
+      "enabled": true,
+      "requirement": "Block the first find structural search in a project context and remind Codex to inspect directory structure before searching."
+    },
+    {
       "id": "deny-bash-find",
       "event": "pre-tool-use",
       "enabled": true,

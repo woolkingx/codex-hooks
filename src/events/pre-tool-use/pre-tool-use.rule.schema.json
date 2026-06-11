@@ -73,6 +73,9 @@
       "properties": {
         "bash-command": {
           "$ref": "../src/features/bash-command/schema.json"
+        },
+        "block-first-time": {
+          "$ref": "../src/features/block-first-time/schema.json"
         }
       },
       "default": {}

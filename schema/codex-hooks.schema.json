@@ -149,7 +149,8 @@
     "features": {
       "type": "object",
       "properties": {
-        "bash-command": { "$ref": "../src/features/bash-command/schema.json" }
+        "bash-command": { "$ref": "../src/features/bash-command/schema.json" },
+        "block-first-time": { "$ref": "../src/features/block-first-time/schema.json" }
       }
     },
     "system": {
@@ -160,6 +161,7 @@
         "log": { "$ref": "log.schema.json" },
         "profile": { "$ref": "profile.schema.json" },
         "status": { "$ref": "status.schema.json" },
+        "tools": { "$ref": "tools.schema.json" },
         "user-policy": { "$ref": "user-policy.schema.json" }
       }
     }

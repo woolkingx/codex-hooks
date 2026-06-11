@@ -95,7 +95,8 @@
 <span class="policy">policy/rules/&lt;event&gt;/*.rule.json</span>          executable rule data, one rule per file
 <span class="schema">schema/codex-hooks.schema.json</span>             root schema graph manifest, reachability only
 <span class="schema">schema/api/openai-codex/generated/</span>        official upstream input/output schema mirror
-<span class="schema">schema/</span>                                   system data schemas: log/status/config/deploy/profile
+<span class="schema">schema/tools.schema.json</span>                   external callable object tree
+<span class="schema">schema/</span>                                   system data schemas: log/status hook-state/config/deploy/profile/tools
 
 <span class="runtime">src/events/&lt;event&gt;/</span>                       schema transition boundary
    input schema                                 official input pair for this event
@@ -106,9 +107,9 @@
 <span class="runtime">lib/schema2object/</span>                         schema data -&gt; object/fn materialization kernel
 <span class="runtime">src/features/&lt;feature&gt;/</span>                   module-owned feature schema + handler
 
-<span class="control">src/{deploy,status,log}/</span>                   control plane and observability
+<span class="control">src/{deploy,status,log}/</span>                   control plane, hook state, and observability
 <span class="control">src/adapters/cli.mjs</span>                      transport only</code></pre>
-    <p>The canonical map: authoring requirement data + event input/rule/output data + runtime log/status data + control config/deploy/profile data. Files that do not match this ontology are outside the active system and must be removed before release.</p>
+    <p>The canonical map: authoring requirement data + event input/rule/output data + runtime log/status/hook-state data + control config/deploy/profile data + external callable tools object tree. Files that do not match this ontology are outside the active system and must be removed before release.</p>
   </section>
 
   <section id="chapter-map">
@@ -126,7 +127,7 @@
         <tr><td><a href="model-onboarding.html">Model Onboarding</a></td><td>agent fast path</td><td>Routing a model from a natural-language request to the right owner, schema, files, and verification command.</td></tr>
         <tr><td><a href="runtime-kernels.html">Runtime Kernels</a></td><td>kernel</td><td>Changing schema materialization, feature handlers, or private parser use.</td></tr>
         <tr><td><a href="config.html">Config</a></td><td>control plane</td><td>Changing active sources or runtime mode.</td></tr>
-        <tr><td><a href="interfaces.html">Interfaces</a></td><td>adapter</td><td>Adding or changing a runtime entrypoint.</td></tr>
+        <tr><td><a href="interfaces.html">Interfaces</a></td><td>adapter + tool object tree</td><td>Adding or changing a runtime entrypoint, external callable tool node, or CLI/hook/MCP/web projection.</td></tr>
         <tr><td><a href="deployment.html">Deployment</a></td><td>control plane</td><td>Changing install or validation.</td></tr>
         <tr><td><a href="decision-flow.html">Decision Flow</a></td><td>cross-cutting</td><td>Following one requirement or one hook end to end.</td></tr>
         <tr><td><a href="stage-actions.html">Stage Actions</a></td><td>cross-cutting</td><td>Turning a user requirement into staged, verifiable actions.</td></tr>

@@ -37,6 +37,13 @@
       "required": ["sessions"],
       "default": { "sessions": {} }
     },
+    "hook_state": {
+      "$ref": "#/definitions/hook_state",
+      "default": {
+        "version": "0.0.1",
+        "projects": {}
+      }
+    },
     "last_event": {
       "type": ["object", "null"],
       "additionalProperties": false,
@@ -69,11 +76,57 @@
     "error_runs",
     "rule_counts",
     "repeat_state",
+    "hook_state",
     "last_event",
     "recent",
     "trace"
   ],
   "definitions": {
+    "hook_state": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "version": { "type": "string" },
+        "projects": {
+          "type": "object",
+          "additionalProperties": { "$ref": "#/definitions/hook_state_project" },
+          "default": {}
+        }
+      },
+      "required": ["version", "projects"]
+    },
+    "hook_state_project": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "updated_at": { "type": "integer", "minimum": 0 },
+        "sessions": {
+          "type": "object",
+          "additionalProperties": { "$ref": "#/definitions/hook_state_session" },
+          "default": {}
+        }
+      },
+      "required": ["updated_at", "sessions"]
+    },
+    "hook_state_session": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "updated_at": { "type": "integer", "minimum": 0 },
+        "compact_mark": { "type": "integer", "minimum": 0 },
+        "processed_compacts": {
+          "type": "object",
+          "additionalProperties": { "type": "integer", "minimum": 0 },
+          "default": {}
+        },
+        "seen": {
+          "type": "object",
+          "additionalProperties": { "type": "integer", "minimum": 0 },
+          "default": {}
+        }
+      },
+      "required": ["updated_at", "compact_mark", "processed_compacts", "seen"]
+    },
     "recent_run": {
       "type": "object",
       "additionalProperties": false,

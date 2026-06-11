@@ -71,10 +71,11 @@ no data ontology -&gt; no schema root</code></pre>
       <thead><tr><th>data</th><th>schema</th><th>owner</th></tr></thead>
       <tbody>
         <tr><td>log</td><td><code>schema/log.schema.json</code></td><td>Runtime observation records: hook events, compiler events, diagnostics, explanations, traces, and gaps all appear as log records.</td></tr>
-        <tr><td>status</td><td><code>schema/status.schema.json</code></td><td>Runtime state snapshot derived from logs and rule inventory.</td></tr>
+        <tr><td>status</td><td><code>schema/status.schema.json</code></td><td>Runtime state snapshot and hook control ledger. Status projections are read-only summaries; hook state is writable runtime-local control data.</td></tr>
         <tr><td>config</td><td><code>schema/config.schema.json</code></td><td>Control input selecting rule roots, profile, mode, and logging.</td></tr>
         <tr><td>deploy</td><td><code>schema/deploy.schema.json</code></td><td>Control-plane install or doctor result.</td></tr>
         <tr><td>profile</td><td><code>schema/profile.schema.json</code></td><td>Optional persistent runtime selection data.</td></tr>
+        <tr><td>tools</td><td><code>schema/tools.schema.json</code></td><td>External callable object tree: the public tool set that nests system, event, feature, fn, and help objects as callable descriptors for CLI, hook, MCP, and web adapters.</td></tr>
       </tbody>
     </table>
   </section>
@@ -87,12 +88,38 @@ no data ontology -&gt; no schema root</code></pre>
   api.&lt;event&gt;.output -&gt; official output schema
   events.&lt;event&gt;.rule -&gt; event rule schema
   features.&lt;name&gt;    -&gt; module-owned feature schema
-  system.*            -&gt; log/status/config/deploy/profile/user requirement schemas</code></pre>
+  system.*            -&gt; log/status/config/deploy/profile/tools/user requirement schemas</code></pre>
     <p>The root schema tree is the boundary map: an active schema is reachable from root, and runtime code gets the schema through <code>Loader.resolve(ref)</code>. Unreachable schemas are dead or unowned until the handbook names their data ontology.</p>
   </section>
 
+  <section id="tools-object-tree">
+    <h2>5. Tools Object Tree</h2>
+    <p><code>tools.schema</code> is the external callable tool-set root. It owns the public object tree of what can be called from outside the runtime. Event, feature, fn, system, and help objects appear under it as callable nodes. Their local implementation truth remains with the owning object; their external callable identity, adapter exposure, and discovery shape belong to <code>tools.schema</code>.</p>
+    <pre><code>root
+  system.tools -&gt; schema/tools.schema.json
+    tools
+      events[&lt;event&gt;]
+      features[&lt;feature&gt;]
+      fn[&lt;fn&gt;]
+      system[&lt;system-object&gt;]
+      help[&lt;help-object&gt;]</code></pre>
+    <p>A tool object uses object coding language: <code>type</code> names the object class, <code>status</code> names stability or availability, <code>value</code> carries schema-valid descriptor data, and <code>method</code> lists callable operations such as <code>describe</code>, <code>invoke</code>, <code>verify</code>, or <code>render</code>. Adapters such as CLI, hook, MCP, and web are exits from this tree, not separate sources of tool truth.</p>
+  </section>
+
+  <section id="hook-state">
+    <h2>6. Hook State Ledger</h2>
+    <p>Hook processes are single-shot. Any feature that must remember a prior hook observation stores runtime-local control state under the status owner, not in event input, rule data, policy authoring data, or logs. The ledger is bounded and disposable: it is allowed to live under the gitignored runtime path and is pruned by TTL and size caps.</p>
+    <pre><code>hook_state
+  projects[normalized_cwd]
+    sessions[session_id]
+      compact_mark
+      processed_compacts[turn_id]
+      seen["&lt;compact_mark&gt;:&lt;feature_key&gt;"]</code></pre>
+    <p><code>cwd</code> is the project persistence layer because it is the official hook project context. <code>PostCompact</code> advances <code>compact_mark</code>; it does not delete old state. Features scope first-time decisions by <code>session_id</code>, <code>cwd</code>, <code>compact_mark</code>, and feature key, so compaction naturally resets first-time status.</p>
+  </section>
+
   <section id="authoring-data">
-    <h2>5. Authoring Data</h2>
+    <h2>7. Authoring Data</h2>
     <p><code>policy/user.json</code> is the authoring plane that receives Codex-authored requirements derived from natural-language input. It is not meant for manual user editing and is not event runtime data. If validated by schema, that schema belongs to the authoring/compiler plane, not to the event schema tuple.</p>
     <pre><code>policy/user.json
   requirements[] = { id, event, enabled, requirement }
@@ -104,11 +131,11 @@ compiler
   </section>
 
   <section id="not-schema-roots">
-    <h2>6. Not Schema Roots</h2>
+    <h2>8. Not Schema Roots</h2>
     <table>
       <thead><tr><th>thing</th><th>why it is not a schema root</th><th>where it belongs</th></tr></thead>
       <tbody>
-        <tr><td>feature module</td><td>Module-owned feature data and handler admitted by the event rule schema.</td><td>Inside <code>src/features/&lt;feature&gt;/schema.json</code> and admitted by the event rule schema; no central feature registry schema root.</td></tr>
+        <tr><td>feature module</td><td>Module-owned feature data and handler admitted by the event rule schema.</td><td>Inside <code>src/features/&lt;feature&gt;/schema.json</code> and admitted by the event rule schema. A callable feature may also have a descriptor under <code>tools.schema</code>, but that descriptor does not own feature behavior.</td></tr>
         <tr><td>event meta</td><td>Shortcut metadata, not a fourth event data object.</td><td>Derive from event topology or keep as module-local constants.</td></tr>
         <tr><td>gap</td><td>A compiler observation that the requirement cannot become rule data now.</td><td><code>log</code> record, e.g. <code>type = "compile.gap"</code>.</td></tr>
         <tr><td>compiler report / trace / explain / diagnostic</td><td>Runtime observations from compiler execution.</td><td><code>log</code> records.</td></tr>
@@ -119,9 +146,10 @@ compiler
   </section>
 
   <section id="gate">
-    <h2>7. Gate</h2>
-    <p id="GATE-DATA-ONTOLOGY-01"><code>GATE-DATA-ONTOLOGY-01</code>: before adding any schema, name the data object, its owner, lifecycle, reader, writer, and reason it cannot be represented as event input, event rule, event output, log, status, config, deploy, profile, or user requirement data.</p>
+    <h2>9. Gate</h2>
+    <p id="GATE-DATA-ONTOLOGY-01"><code>GATE-DATA-ONTOLOGY-01</code>: before adding any schema, name the data object, its owner, lifecycle, reader, writer, and reason it cannot be represented as event input, event rule, event output, log, status, config, deploy, profile, tools, or user requirement data.</p>
     <p id="GATE-SCHEMA-TREE-ROOT-01"><code>GATE-SCHEMA-TREE-ROOT-01</code>: every active schema resolves from <code>schema/codex-hooks.schema.json</code> through <code>Loader.resolve()</code>; runtime code does not compose synthetic schemas or bypass returned sub-loader scope.</p>
+    <p id="GATE-TOOLS-OBJECT-TREE-01"><code>GATE-TOOLS-OBJECT-TREE-01</code>: a <code>tools.schema</code> node may own external callable identity, adapter exposure, method list, status, descriptor value, schema references, and gates; it must not own event transition logic, feature behavior, policy semantics, runtime state, or deploy side effects.</p>
   </section>
     </main>
   </div>

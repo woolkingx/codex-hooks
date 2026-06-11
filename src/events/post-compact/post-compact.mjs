@@ -1,5 +1,6 @@
 import { applyRule } from '../../core/transition.mjs'
 import { loadOfficialSchema, ensureValid } from '../../core/load.mjs'
+import { advanceCompactMark, loadHookState, saveHookState } from '../../status/hook-state.mjs'
 import { instanceId } from '../_shared/instance-id.mjs'
 
 const KEBAB = 'post-compact'
@@ -18,6 +19,16 @@ export const meta = Object.freeze({
 export async function handle(rawInput, rules, options = {}) {
   const sduSchema = loadOfficialSchema(KEBAB, 'input')
   ensureValid(rawInput, sduSchema, `${KEBAB}.sdu`)
+
+  if (options.statePath) {
+    const hookState = loadHookState(options.statePath)
+    advanceCompactMark(hookState, {
+      cwd: rawInput.cwd,
+      sessionId: rawInput.session_id,
+      turnId: rawInput.turn_id,
+    })
+    saveHookState(options.statePath, hookState)
+  }
 
   const eventRules = rules
     .filter(r => r.event === KEBAB)

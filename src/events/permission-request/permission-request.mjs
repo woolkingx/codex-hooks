@@ -1,5 +1,6 @@
-import { applyRule } from '../../core/transition.mjs'
+import { applyRuleWithEffects } from '../../core/transition.mjs'
 import { loadOfficialSchema, ensureValid } from '../../core/load.mjs'
+import { loadHookState, saveHookState } from '../../status/hook-state.mjs'
 import { instanceId } from '../_shared/instance-id.mjs'
 
 const KEBAB = 'permission-request'
@@ -34,15 +35,19 @@ export async function handle(rawInput, rules, options = {}) {
   const eventRules = permissionTransitions(rules, rawInput)
     .sort((a, b) => (a.rule.priority ?? 100) - (b.rule.priority ?? 100) || a.rule.id.localeCompare(b.rule.id))
 
+  const hookState = options.statePath ? loadHookState(options.statePath) : null
+  const featureContext = hookState ? { hookState } : {}
 
   let value = null
   let firedRuleId = null
+  let commit = null
   for (const { rule, input, mapOutput } of eventRules) {
     if (rule.enabled === false || rule.enabled === 'test') continue
-    const result = applyRule(rule, input)
+    const result = applyRuleWithEffects(rule, input, featureContext)
     if (result !== null && result !== undefined) {
-      value = mapOutput(result)
+      value = mapOutput(result.output)
       if (value === null || value === undefined) continue
+      commit = result.commit
       firedRuleId = rule.id
       break
     }
@@ -57,6 +62,10 @@ export async function handle(rawInput, rules, options = {}) {
   if (value !== null && value !== undefined) {
     const pduSchema = loadOfficialSchema(KEBAB, 'output')
     ensureValid(value, pduSchema, `${KEBAB}.pdu`)
+    if (commit) {
+      commit()
+      if (options.statePath && hookState) saveHookState(options.statePath, hookState)
+    }
     ret.output = value
   }
 

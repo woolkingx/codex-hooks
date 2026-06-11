@@ -1,0 +1,17 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "block-first-time.feature.schema.json",
+  "title": "block-first-time feature",
+  "description": "Module-owned feature data for blocking once per status-owned hook-state scope.",
+  "type": "object",
+  "required": [
+    "key"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "key": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+    }
+  }
+}

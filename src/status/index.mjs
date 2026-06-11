@@ -12,6 +12,7 @@ export function buildStatus(entries, options = {}) {
     error_runs: errorRuns,
     rule_counts: ruleCounts(entries),
     repeat_state: options.repeatState ?? { sessions: {} },
+    hook_state: options.hookState ?? { version: '0.0.1', projects: {} },
     last_event: entries.length ? lastEvent(entries.at(-1)) : null,
     recent,
     trace: recent,

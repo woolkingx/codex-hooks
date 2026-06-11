@@ -115,8 +115,23 @@ rule file = policy/rules/pre-tool-use/deny-rm.rule.json</code></pre>
     <p>This is the runtime contract: trigger checks official input path values, feature modules interpret derived capability data, and output writes official output data. <code>fields[]</code>, <code>conditions[]</code>, <code>process</code>, <code>params</code>, and <code>write</code> are not runtime rule data.</p>
   </section>
 
+  <section id="block-first-time">
+    <h2>6. Block First Time Feature</h2>
+    <p><code>block-first-time</code> is a stateful feature capability. It is used with another matcher feature such as <code>bash-command</code>: the matcher identifies the tool behavior, and <code>block-first-time</code> decides whether that behavior has already been blocked for the current project/session/compact generation.</p>
+    <pre><code>scope = normalized cwd + session_id + compact_mark + feature key
+
+first matching tool use:
+  mark seen
+  emit official block output
+
+later matching tool use in same scope:
+  feature no-matches
+  later rules may still decide</code></pre>
+    <p><code>cwd</code> is the project persistence layer. <code>PostCompact</code> advances <code>compact_mark</code>, so the feature resets after context compaction without deleting old ledger entries. The hook state owner prunes old projects, sessions, compact ids, and seen keys by TTL and size caps.</p>
+  </section>
+
   <section id="logs">
-    <h2>6. Compiler and Runtime Logs</h2>
+    <h2>7. Compiler and Runtime Logs</h2>
     <p>The following are log information: <code>compile.gap</code>, compiler report, compile trace, explain, diagnostic, and error. They belong under log data, not under policy artifacts or schema roots.</p>
     <pre><code>{
   "runtime": "compiler",

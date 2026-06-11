@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.2.0 - 2026-06-11
+
+- Refreshed the OpenAI Codex generated hook schema mirror metadata to commit `7c2394808ed09b1e3aae254f12c027ff657e8f20`.
+- Added status-owned hook-state data for bounded, project-scoped hook control state.
+- Added the `block-first-time` feature and bundled first-use structural-search gates for `rg` and `find`, scoped by `cwd + session_id + compact_mark + feature key`.
+- Added `schema/tools.schema.json` as the external callable object tree for event, feature, fn, system, and help objects.
+- Added CLI `tools list`, `tools describe`, and `tools help` projections over the tools owner, with adapter status for CLI, hook, MCP, and web surfaces.
+- Fixed `PermissionRequest` projection of stateful `pre-tool-use` rules so stateless callers skip `block-first-time` instead of crashing, while state-backed callers commit first-time status.
+
 ## 0.1.28 - 2026-05-30
 
 - Refreshed the OpenAI Codex generated hook schema mirror to commit `3e7baa00e43419967d90d6ad9cef40f58d5ac89f`.

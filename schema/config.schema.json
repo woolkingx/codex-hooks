@@ -33,6 +33,13 @@
         }
       }
     },
+    "state": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "path": { "type": "string", "default": "logs/codex-hooks-state.json" }
+      }
+    },
     "default": {
       "type": "object",
       "additionalProperties": true,

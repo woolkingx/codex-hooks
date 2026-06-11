@@ -8,11 +8,13 @@ test('root schema resolves event input, rule, output, feature, and system schema
     schemaRefs.eventRule('pre-tool-use'),
     schemaRefs.eventOutput('pre-tool-use'),
     schemaRefs.feature('bash-command'),
+    schemaRefs.feature('block-first-time'),
     schemaRefs.system('config'),
     schemaRefs.system('deploy'),
     schemaRefs.system('log'),
     schemaRefs.system('profile'),
     schemaRefs.system('status'),
+    schemaRefs.system('tools'),
     schemaRefs.userPolicy(),
   ]) {
     const { node, loader } = resolveSchema(ref)

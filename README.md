@@ -10,7 +10,7 @@ Architecture truth lives in `docs/handbook/index.html`. This README is the publi
 
 ## Status
 
-- Version: `0.1.28`
+- Version: `0.2.0`
 - Runtime: CLI and Codex hook interface
 - Daemon: roadmap
 - Rule runtime: canonical `trigger + feature + output` declarations only

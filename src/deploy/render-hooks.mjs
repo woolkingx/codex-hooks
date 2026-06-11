@@ -6,7 +6,8 @@ export function renderHooksConfig(options = {}) {
   const rulesRoot = options.rulesRoot ?? 'policy/rules'
   const profilePath = options.profilePath
   const logPath = options.logPath ?? 'logs/codex-hooks.jsonl'
-  const command = options.command ?? defaultCommand({ rulesRoot, profilePath, logPath })
+  const statePath = options.statePath ?? 'logs/codex-hooks-state.json'
+  const command = options.command ?? defaultCommand({ rulesRoot, profilePath, logPath, statePath })
   const timeout = options.timeout ?? 30
   const hooks = {}
   const wireNames = listEvents().map(wireFromKebab).sort()
@@ -28,10 +29,12 @@ export function defaultCommand(options = {}) {
   const rulesRoot = options.rulesRoot ?? 'policy/rules'
   const profilePath = options.profilePath
   const logPath = options.logPath ?? 'logs/codex-hooks.jsonl'
+  const statePath = options.statePath ?? 'logs/codex-hooks-state.json'
   const cliPath = path.join(rootPath(), 'src/adapters/cli.mjs')
   const parts = ['node', quote(cliPath), 'hook', '--rules', quote(rulesRoot)]
   if (profilePath) parts.push('--profile', quote(profilePath))
   if (logPath) parts.push('--log', quote(logPath))
+  if (statePath) parts.push('--state', quote(statePath))
   return parts.join(' ')
 }
 

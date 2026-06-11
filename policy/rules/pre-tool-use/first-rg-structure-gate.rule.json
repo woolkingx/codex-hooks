@@ -1,0 +1,28 @@
+{
+  "id": "first-rg-structure-gate",
+  "event": "pre-tool-use",
+  "priority": 40,
+  "trigger": {
+    "$.tool_name": "Bash"
+  },
+  "feature": {
+    "bash-command": {
+      "value": {
+        "path": "$.tool_input.command",
+        "name": "rg"
+      }
+    },
+    "block-first-time": {
+      "key": "structural-search"
+    }
+  },
+  "output": {
+    "decision": "block",
+    "reason": "Before using rg/find, inspect the project structure first: read local act rules, handbook/index, git status, and directory layout to locate the owner structurally. rg/find is the fallback after structured location paths fail. This project/session/compact scope has recorded the reminder; later rg/find may proceed.",
+    "hookSpecificOutput": {
+      "hookEventName": "PreToolUse",
+      "permissionDecision": "deny",
+      "permissionDecisionReason": "Inspect project structure before rg/find. This first-time structural-search reminder has been recorded for the current cwd/session/compact scope."
+    }
+  }
+}

@@ -9,6 +9,8 @@ import { toErrorPDU } from '../core/errors.mjs'
 import { applyInstallPlan, createInstallPlan, renderHooksConfig, runDoctor } from '../deploy/index.mjs'
 import { appendLog, buildLogRecord, readLogTail } from '../log/index.mjs'
 import { readStatus } from '../status/index.mjs'
+import { DEFAULT_HOOK_STATE_PATH } from '../status/hook-state.mjs'
+import { describe as describeTool, list as listTools, renderHelp as renderToolsHelp } from '../tools/index.mjs'
 import {
   buildUserRuleSyncReport,
   loadUserPolicy,
@@ -30,6 +32,7 @@ export async function main(args) {
   if (command === 'hook') return runFromStdin(rest)
   if (command === 'run' && rest[0]) return runFromFile(rest[0], rest.slice(1))
   if (command === 'events') return writeJson(listEvents())
+  if (command === 'tools') return toolsCommand(rest)
   if (command === 'policy') return policyCommand(rest)
   if (command === 'logs') return writeJson(readLogTail(logOptions(rest)))
   if (command === 'status') return writeJson(readStatus(logOptions(rest)))
@@ -56,6 +59,7 @@ async function runFromText(text, rest) {
   const rulesRoot = flagValue(rest, '--rules') ?? config?.source?.rules_root ?? 'policy/rules'
   const profilePath = flagValue(rest, '--profile') ?? config?.source?.profile_path ?? undefined
   const logPath = flagValue(rest, '--log') ?? config?.log?.path ?? undefined
+  const statePath = flagValue(rest, '--state') ?? config?.state?.path ?? DEFAULT_HOOK_STATE_PATH
   const failClosed = parseFailClosed(flagValue(rest, '--fail-closed'), config?.mode?.fail_closed)
   const dryRun = parseDryRun(flagValue(rest, '--dry-run'), config?.mode?.runtime)
   const redactionPatterns = config?.log?.redaction
@@ -74,7 +78,7 @@ async function runFromText(text, rest) {
   }
   if (!result) {
     try {
-      result = await runHook(input, { rulesRoot, profilePath, failClosed, dryRun })
+      result = await runHook(input, { rulesRoot, profilePath, failClosed, dryRun, statePath })
     } catch (caught) {
       error = caught
       if (!failClosed) {
@@ -260,6 +264,7 @@ async function policyVerifyCommand(args) {
   const result = await runHook(input, {
     rulesRoot: flagValue(args, '--rules') ?? 'policy/rules',
     profilePath: flagValue(args, '--profile') ?? undefined,
+    statePath: flagValue(args, '--state') ?? undefined,
     failClosed: false,
   })
   const actual = decisionFromOutput(result.output)
@@ -278,12 +283,34 @@ async function installCommand(args) {
   writeJson(plan)
 }
 
+function toolsCommand(args) {
+  const [sub, ...rest] = args
+  if (sub === 'list') {
+    return writeJson(listTools({
+      adapter: flagValue(rest, '--adapter') ?? undefined,
+      status: flagValue(rest, '--status') ?? undefined,
+      type: flagValue(rest, '--type') ?? undefined,
+    }))
+  }
+  if (sub === 'describe') {
+    const [id] = rest
+    if (!id) { usage(); return }
+    return writeJson(describeTool(id))
+  }
+  if (sub === 'help' || !sub) {
+    process.stdout.write(renderToolsHelp({ adapter: flagValue(rest, '--adapter') ?? 'cli' }))
+    return
+  }
+  usage()
+}
+
 function deployOptions(args) {
   return {
     target: flagValue(args, '--target') ?? 'project',
     rulesRoot: flagValue(args, '--rules') ?? 'policy/rules',
     profilePath: flagValue(args, '--profile') ?? undefined,
     logPath: flagValue(args, '--log') ?? undefined,
+    statePath: flagValue(args, '--state') ?? undefined,
     command: flagValue(args, '--command') ?? undefined,
   }
 }
@@ -333,20 +360,23 @@ function writeJson(data) {
 
 function usage() {
   process.stderr.write([
-    'usage: codex-hooks hook [--rules <path>] [--profile <path>] [--config <path>] [--log <path>] [--fail-closed true|false] [--dry-run true|false]',
+    'usage: codex-hooks hook [--rules <path>] [--profile <path>] [--config <path>] [--log <path>] [--state <path>] [--fail-closed true|false] [--dry-run true|false]',
     '       codex-hooks run <input.json> [...same flags]',
     '       codex-hooks events',
+    '       codex-hooks tools list [--adapter cli|hook|mcp|web] [--type event|feature|fn|system|help] [--status implemented|target|roadmap|hidden|deprecated]',
+    '       codex-hooks tools describe <id>',
+    '       codex-hooks tools help [--adapter cli|hook|mcp|web]',
     '       codex-hooks policy requirements list|validate|sync [--file policy/user.json] [--rules policy/rules]',
     '       codex-hooks policy requirements set <id> --event <event> --requirement <text> [--enabled true|false] [--file policy/user.json]',
     '       codex-hooks policy requirements enable|disable|remove <id> [--file policy/user.json]',
     '       codex-hooks policy compile [--rules <p>] [--profile <p>] [--out <file>]',
     '       codex-hooks policy compile --user policy/user.json --out policy/rules --write',
-    '       codex-hooks policy verify-command --event pre-tool-use --command <text> --expect allow|block|deny [--rules <p>]',
+    '       codex-hooks policy verify-command --event pre-tool-use --command <text> --expect allow|block|deny [--rules <p>] [--state <p>]',
     '       codex-hooks policy build [--requirement <id>]',
     '       codex-hooks policy explain <rule-id> [--rules <p>]',
     '       codex-hooks logs   [--log logs/codex-hooks.jsonl] [--tail 20]',
     '       codex-hooks status [--log logs/codex-hooks.jsonl] [--tail 1000]',
-    '       codex-hooks render-hooks [--rules <p>] [--profile <p>] [--log <p>] [--command <cmd>]',
+    '       codex-hooks render-hooks [--rules <p>] [--profile <p>] [--log <p>] [--state <p>] [--command <cmd>]',
     '       codex-hooks doctor  [--target project|user] [--rules <p>] [--log <p>]',
     '       codex-hooks install [--target project|user] [--rules <p>] [--log <p>] [--apply]',
     '',

@@ -1,12 +1,24 @@
 import { resolveInput, validateInputPath } from './path.mjs'
-import { evaluateFeature, featureInputPaths, validateFeatureConfig } from '../features/index.mjs'
+import { evaluateFeature, featureCommit, featureInputPaths, validateFeatureConfig } from '../features/index.mjs'
 
 export { resolveInput }
 
-export function applyRule(rule, input) {
+export function applyRule(rule, input, context = {}) {
+  return applyRuleWithEffects(rule, input, context)?.output ?? null
+}
+
+export function applyRuleWithEffects(rule, input, context = {}) {
   if (!triggerMatches(rule.trigger ?? {}, input)) return null
-  if (!featuresMatch(rule.feature ?? {}, input)) return null
-  return rule.output ?? null
+  const featureResult = featuresMatch(rule.feature ?? {}, input, context)
+  if (!featureResult.matched) return null
+  return {
+    output: rule.output ?? null,
+    commit: () => {
+      const results = []
+      for (const effect of featureResult.effects) results.push(effect())
+      return results
+    },
+  }
 }
 
 export function validateRuleTransition(rule, { sduSchema, label = 'rule' } = {}) {
@@ -29,11 +41,14 @@ function triggerMatches(trigger, input) {
   return true
 }
 
-function featuresMatch(feature, input) {
+function featuresMatch(feature, input, context) {
+  const effects = []
   for (const [featureName, config] of Object.entries(feature)) {
-    if (!evaluateFeature(featureName, config, input)) return false
+    if (!evaluateFeature(featureName, config, input, context)) return { matched: false, effects: [] }
+    const effect = featureCommit(featureName, config, input, context)
+    if (effect) effects.push(effect)
   }
-  return true
+  return { matched: true, effects }
 }
 
 function deepEqual(a, b) {
