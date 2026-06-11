@@ -97,6 +97,25 @@ async function findWorkItem(title) {
   return body.find((workItem) => workItem.title === title) || null;
 }
 
+async function closeSupersededWorkItems(currentTitle) {
+  const params = new URLSearchParams();
+  params.set("state", "opened");
+  params.set("labels", optionalEnv("APPROVAL_ISSUE_LABEL", DEFAULT_LABEL));
+  params.set("search", "Approve public projection for codex-hooks");
+  const { body } = await api(`/projects/${projectId()}/issues?${params.toString()}`);
+  const superseded = body.filter((workItem) => workItem.title !== currentTitle);
+  for (const workItem of superseded) {
+    const closeParams = new URLSearchParams();
+    closeParams.set("state_event", "close");
+    await api(`/projects/${projectId()}/issues/${workItem.iid}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: closeParams,
+    });
+  }
+  return superseded.map((workItem) => workItem.iid);
+}
+
 async function createOrUpdateWorkItem({ dryRun }) {
   const title = releaseTitle();
   const jobUrl = dryRun ? optionalEnv("APPROVAL_JOB_URL", requireEnv("CI_PIPELINE_URL")) : await approvalJobUrl();
@@ -110,10 +129,11 @@ async function createOrUpdateWorkItem({ dryRun }) {
     approval_job_url: jobUrl,
   };
   if (dryRun) {
-    console.log(JSON.stringify({ action: "create", dry_run: true, payload }, null, 2));
+    console.log(JSON.stringify({ action: "create", dry_run: true, closes_superseded: true, payload }, null, 2));
     return;
   }
 
+  const closedSuperseded = await closeSupersededWorkItems(title);
   let workItem = await findWorkItem(title);
   if (workItem) {
     const params = new URLSearchParams();
@@ -149,6 +169,7 @@ async function createOrUpdateWorkItem({ dryRun }) {
     work_item_iid: workItem.iid,
     work_item_url: workItem.web_url,
     todo_status: todo.status,
+    closed_superseded_work_item_iids: closedSuperseded,
   }, null, 2));
 }
 
