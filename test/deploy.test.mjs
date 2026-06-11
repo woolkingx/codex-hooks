@@ -61,5 +61,5 @@ test('public wiki projection skips missing wiki remotes unless required', () => 
   const wikiPublisher = fs.readFileSync('scripts/publish_wikis.sh', 'utf8')
   assert.match(wikiPublisher, /wiki skipped: \$\{label\} remote missing/)
   assert.match(wikiPublisher, /PUBLIC_WIKI_REQUIRED:-0/)
-  assert.match(wikiPublisher, /grep -qi "not found"/)
+  assert.match(wikiPublisher, /not found\|wiki is disabled/)
 })

@@ -28,7 +28,7 @@ publish_git_wiki() {
   work_dir="$(make_temp_dir)"
   clone_log="$(make_temp_dir)/clone.log"
   if ! git clone "$remote_url" "$work_dir" 2>"$clone_log"; then
-    if grep -qi "not found" "$clone_log" && [ "${PUBLIC_WIKI_REQUIRED:-0}" != "1" ]; then
+    if grep -Eqi "not found|wiki is disabled" "$clone_log" && [ "${PUBLIC_WIKI_REQUIRED:-0}" != "1" ]; then
       echo "wiki skipped: ${label} remote missing"
       return 0
     fi
