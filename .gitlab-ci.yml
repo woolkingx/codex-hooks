@@ -2,8 +2,10 @@ stages:
   - verify
   - build
   - internal_publish
+  - notify
   - approve
   - publish
+  - close
 
 verify_release_projection:
   stage: verify
@@ -35,6 +37,15 @@ publish_gitlab_wiki:
     - if: '$CI_COMMIT_BRANCH == "release" && $CI_COMMIT_REF_PROTECTED == "true"'
   script:
     - bash scripts/publish_gitlab_wiki.sh
+
+notify_public_projection_approval:
+  stage: notify
+  needs:
+    - job: publish_gitlab_wiki
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "release" && $CI_COMMIT_REF_PROTECTED == "true"'
+  script:
+    - node scripts/public_approval_work_item.mjs create
 
 approve_public_projection:
   stage: approve
@@ -69,3 +80,13 @@ publish_wiki_projection:
     - git config --global user.email "ci@codex-hooks.local"
   script:
     - bash scripts/publish_wikis.sh
+
+close_public_projection_approval:
+  stage: close
+  needs:
+    - job: publish_public_repositories
+    - job: publish_wiki_projection
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "release" && $CI_COMMIT_REF_PROTECTED == "true"'
+  script:
+    - node scripts/public_approval_work_item.mjs close
