@@ -90,7 +90,7 @@ GitLab protected release + manual approval -&gt; GitHub/Codeberg repositories an
       </tbody>
     </table>
     <p>GitLab <code>release</code> keeps GitLab-only control-plane files such as <code>.gitlab-ci.yml</code>. GitHub and Codeberg <code>release</code> receive a filtered snapshot that excludes GitLab CI and publication helper scripts, so public release commits are content projections and are not expected to have the same SHA as the GitLab <code>release</code> commit.</p>
-    <p>The manual approval job is the execution gate. The approval work item and To-Do item are the visibility gate: they make the waiting public projection visible outside the pipeline page and are closed only after the public repository and wiki publish jobs succeed. The current GitLab API write path is the issue endpoint, while the GitLab UI presents the created object as a work item.</p>
+    <p>The manual approval job is the execution gate. The approval work item and To-Do item are the visibility gate: they make the waiting public projection visible outside the pipeline page and are closed only after the public repository and wiki publish jobs succeed. The current GitLab API write path is the issue endpoint, while the GitLab UI presents the created object as a work item. Assignment is the primary To-Do owner; a manual marked To-Do is only a fallback when no approval assignee exists.</p>
     <p>The handbook remains architecture truth. GitLab, GitHub, and Codeberg wiki pages are generated projections for navigation and must not become a second source of truth.</p>
   </section>
 

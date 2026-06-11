@@ -104,6 +104,8 @@ async function closeSupersededWorkItems(currentTitle) {
   params.set("search", "Approve public projection for codex-hooks");
   const { body } = await api(`/projects/${projectId()}/issues?${params.toString()}`);
   const superseded = body.filter((workItem) => workItem.title !== currentTitle);
+  const closedWorkItemIids = [];
+  const closedTodoIds = [];
   for (const workItem of superseded) {
     const closeParams = new URLSearchParams();
     closeParams.set("state_event", "close");
@@ -112,16 +114,26 @@ async function closeSupersededWorkItems(currentTitle) {
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: closeParams,
     });
+    closedWorkItemIids.push(workItem.iid);
+    closedTodoIds.push(...await markPendingTodosDone(workItem.iid));
   }
-  return superseded.map((workItem) => workItem.iid);
+  return { workItemIids: closedWorkItemIids, todoIds: closedTodoIds };
 }
 
-async function findPendingTodo(workItemIid) {
+async function pendingTodosForWorkItem(workItemIid) {
   const params = new URLSearchParams();
   params.set("project_id", projectId());
   params.set("state", "pending");
   const { body } = await api(`/todos?${params.toString()}`);
-  return body.find((todo) => String(todo.target?.iid) === String(workItemIid)) || null;
+  return body.filter((todo) => String(todo.target?.iid) === String(workItemIid));
+}
+
+async function markPendingTodosDone(workItemIid) {
+  const todos = await pendingTodosForWorkItem(workItemIid);
+  for (const todo of todos) {
+    await api(`/todos/${todo.id}/mark_as_done`, { method: "POST" });
+  }
+  return todos.map((todo) => todo.id);
 }
 
 async function createOrUpdateWorkItem({ dryRun }) {
@@ -171,18 +183,25 @@ async function createOrUpdateWorkItem({ dryRun }) {
     workItem = created.body;
   }
 
-  let todoStatus = "existing";
-  const existingTodo = await findPendingTodo(workItem.iid);
-  if (!existingTodo) {
-    const todo = await api(`/projects/${projectId()}/issues/${workItem.iid}/todo`, { method: "POST" });
-    todoStatus = todo.status;
+  let todoStatus = "assigned";
+  let todoId = null;
+  if (!assignee) {
+    const existingTodos = await pendingTodosForWorkItem(workItem.iid);
+    todoStatus = "existing";
+    if (existingTodos.length === 0) {
+      const todo = await api(`/projects/${projectId()}/issues/${workItem.iid}/todo`, { method: "POST" });
+      todoStatus = "marked";
+      todoId = todo.body?.id || null;
+    }
   }
   console.log(JSON.stringify({
     action: "create",
     work_item_iid: workItem.iid,
     work_item_url: workItem.web_url,
     todo_status: todoStatus,
-    closed_superseded_work_item_iids: closedSuperseded,
+    todo_id: todoId,
+    closed_superseded_work_item_iids: closedSuperseded.workItemIids,
+    closed_superseded_todo_ids: closedSuperseded.todoIds,
   }, null, 2));
 }
 
@@ -204,10 +223,12 @@ async function closeWorkItem({ dryRun }) {
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
     body: params,
   });
+  const closedTodoIds = await markPendingTodosDone(workItem.iid);
   console.log(JSON.stringify({
     action: "close",
     work_item_iid: closed.body.iid,
     work_item_url: closed.body.web_url,
+    closed_todo_ids: closedTodoIds,
     state: closed.body.state,
   }, null, 2));
 }
